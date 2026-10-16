@@ -2,6 +2,10 @@ name: fetch-skins
 
 on:
   workflow_dispatch:
+    inputs:
+      characters:
+        description: Comma-separated character keys
+        required: false
   push:
     paths:
       - tools/fetch_skins.py
@@ -23,7 +27,7 @@ jobs:
         run: |
           pip install -q pillow
           mkdir -p skins_out
-          python3 tools/fetch_skins.py skins_out 2>&1 | tee skins_out/log.txt || true
+          python3 tools/fetch_skins.py skins_out ${{ inputs.characters || 'darkness,wiz,yunyun,luna,beldia,undead_knight,goblin,townsfolk' }} 2>&1 | tee skins_out/log.txt || true
           ls -la skins_out
       - name: Publish candidates
         if: always()

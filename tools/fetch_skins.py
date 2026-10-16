@@ -23,7 +23,7 @@ import urllib.request
 from PIL import Image, ImageDraw
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-DEADLINE = time.time() + 14 * 60
+DEADLINE = time.time() + 20 * 60
 DUMP_DIR = None
 
 DECOR = ["{}", "{}_", "_{}", "x{}x", "{}1", "{}2", "{}7", "{}X", "{}UwU", "{}_UwU", "{}Chan", "{}_Chan",
@@ -34,27 +34,45 @@ NAMES = {
                 "CrimsonMegumin", "BakuretsuMegumin", "Meguminn", "Megu_min", "Megumin_Bakuretsu"],
     "aqua": ["Aqua", "AquaSama", "Aqua_Sama", "GoddessAqua", "Goddess_Aqua", "AquaGoddess", "Aqua_Goddess",
              "AquaKonosuba", "UselessGoddess", "Useless_Goddess", "AquaTheGoddess", "Aquaa"],
-    "darkness": ["Darkness", "Lalatina", "LalatinaDustiness", "Dustiness", "DarknessKonosuba", "Darkness_Konosuba",
-                 "Lalatina_", "Darknesss", "CrusaderDarkness", "LalatinaFord"],
     "kazuma": ["Kazuma", "KazumaSatou", "Kazuma_Satou", "SatouKazuma", "Satou_Kazuma", "KazumaSato", "Kazuma_Sato",
                "Kazumaa", "KazumaKun", "Kazuma_Kun", "Kazuma_Steal", "KazumaStealer"],
     "eris": ["Eris", "GoddessEris", "Goddess_Eris", "ErisSama", "Eris_Sama", "ErisKonosuba", "Eris_Konosuba", "Erisu",
              "ErisPad", "ErisGoddess"],
-    "chris": ["ChrisKonosuba", "Chris_Konosuba", "ChrisThief", "Chris_Thief"],
-    "wiz": ["Wiz", "WizKonosuba", "Wiz_Konosuba", "WizLich", "Wiz_Lich", "LichWiz", "WizShop", "Wiz_Shop",
-            "IceWitchWiz", "Wizz"],
-    "yunyun": ["Yunyun", "YunYun", "Yun_Yun", "Yunyun_", "YunyunKonosuba", "Yunyun_Konosuba", "Yunyunn",
-               "YunyunChan", "Yunyun_Chan", "YunYunn"],
     "vanir": ["Vanir", "VanirKonosuba", "Vanir_Konosuba", "DukeVanir", "Duke_Vanir", "VanirMask", "Vanir_",
               "VanirSama", "Vanirr", "VanirDevil"],
-    "luna": ["LunaKonosuba", "Luna_Konosuba", "LunaGuild", "Luna_Guild", "GuildLuna", "Luna_Receptionist"],
-    "beldia": ["Beldia", "Verdia", "Beldia_", "BeldiaDullahan", "Dullahan", "DullahanKnight", "HeadlessKnight",
-               "Headless_Knight", "Dullahan_"],
+    "darkness": ["Darkness", "Lalatina", "Darkness_Lalatina", "LalatinaDarkness", "DarknessDustiness",
+                 "Dustiness_Ford", "Darkness_Crusader", "CrusaderLalatina", "Lalatina_Dustiness", "Lalatina1",
+                 "Lalatinaa", "Darkness_Kono", "DarknessKono", "DarknessSama", "MasochistKnight", "Daskunesu",
+                 "LalatinaChan", "Lalatina_Chan", "Dustiness", "DustinessFord", "LalatinaFord", "Lalatina_Ford",
+                 "DarknessKnight", "Darkness_Knight"],
+    "wiz": ["Wiz", "WizSama", "Wiz_chan", "LichQueen", "Lich_Queen", "Wiz_the_Lich", "WizTheLich", "IceWitch",
+            "Ice_Witch", "IceWitchWiz", "PoorWiz", "Wiz_Shopkeeper", "WizMagicShop", "Wizu", "Uiz", "Uizu",
+            "WizKonosuba", "Wiz_Konosuba", "WizLich", "Wiz_Lich", "LichWiz", "Lich_Wiz", "WizShop", "Wiz_Shop",
+            "WizUwU", "Wiz_UwU", "WizChan", "Wiz__", "WizKono", "Wiz_Kono", "BrokeWiz", "LichShop"],
+    "yunyun": ["Yunyun", "Yunyun_Crimson", "YunyunBestGirl", "yun_yun_", "Yunyun1", "Yunyunnn", "Yunyun_uwu",
+               "Yunyun2", "YunyunSama", "Yuunyun", "Yun_Yun_", "Yunyun_Megumin", "YunyunRival", "CrimsonYunyun",
+               "Yunyun_Kono", "Yunyun_MC", "YunyunMC", "xYunyunx", "Yunyunx", "Yunyun777", "YunyunKonosuba",
+               "Yunyun_Konosuba", "YunyunChan", "Yunyun_Chan", "Yunyun_", "_Yunyun", "YunyunUwU", "Yunyun3",
+               "Yunyun7", "LonelyYunyun", "Yunyun_Lonely", "BocchiYunyun"],
+    "luna": ["LunaKonosuba", "Luna_Konosuba", "LunaGuild", "Luna_Guild", "GuildLuna", "Luna_Receptionist",
+             "Receptionist", "GuildGirl", "Guild_Girl", "Waitress", "Barmaid", "TavernGirl", "Tavern_Girl",
+             "Luna_Axel", "LunaAxel", "GuildMaster", "Guild_Receptionist", "Maid", "MedievalMaid", "Bargirl"],
+    "beldia": ["Beldia", "Verdia", "BlackKnight", "Black_Knight", "DarkKnight", "Dark_Knight", "Knight",
+               "ArmoredKnight", "DemonKnight", "Demon_Knight", "DullahanKnight", "Dullahan", "Dullahan_",
+               "HeadlessKnight", "Headless_Knight", "CursedKnight", "Cursed_Knight", "ShadowKnight", "AbyssKnight",
+               "Knight_", "TheKnight", "DarkPaladin", "Dark_Paladin", "ChaosKnight"],
     "undead_knight": ["UndeadKnight", "Undead_Knight", "SkeletonKnight", "Skeleton_Knight", "DeathKnight",
-                      "Death_Knight", "UndeadWarrior"],
-    "goblin": ["Goblin", "GoblinKing", "Goblin_", "GreenGoblin", "Goblinn", "GoblinSlayer"],
-    "townsfolk": ["Villager", "Peasant", "Merchant", "Blacksmith", "Farmer", "Baker", "Innkeeper", "Tavernkeeper",
-                  "MedievalVillager", "Medieval_Villager", "Shopkeeper", "Fisherman", "Hunter", "Bard"],
+                      "SkeletonWarrior", "Skeleton_Warrior", "Revenant", "UndeadSoldier", "SkeletonSoldier",
+                      "ZombieKnight", "Zombie_Knight", "Wight", "Draugr", "UndeadWarrior", "SkeletonKing",
+                      "Skeleton_King", "Lich", "Ghoul", "BoneKnight"],
+    "goblin": ["Goblin", "GoblinKing", "GoblinWarrior", "Goblin_King", "Orc", "Goblin1", "GoblinBoy",
+               "TheGoblin", "Goblins", "Hobgoblin", "Goblin_Warrior", "GoblinChief", "Kobold", "GreenGoblin",
+               "Goblin_", "Gobbo", "GoblinMC", "Orc_Warrior"],
+    "townsfolk": ["MedievalPeasant", "Peasant1", "Villager1", "TownGuard", "Guard", "Nun", "Priest", "Adventurer",
+                  "Warrior", "Ranger", "Archer", "Cleric", "Thief", "Rogue", "Paladin", "Swordsman", "Lancer",
+                  "Merchant1", "Traveler", "Monk", "Shepherd", "Miller", "Tailor", "Cook", "Chef", "Blacksmith",
+                  "Farmer", "Baker", "Innkeeper", "Villager", "Peasant", "Merchant", "Medieval_Villager",
+                  "Knight_Guard", "Squire", "Mercenary", "Bard", "Hunter", "Fisherman", "Lumberjack"],
 }
 DECORATED = {"megumin", "aqua", "darkness", "kazuma", "eris", "wiz", "yunyun", "vanir"}
 
@@ -295,10 +313,11 @@ def main():
     DUMP_DIR = os.path.join(out_dir, "html")
     os.makedirs(DUMP_DIR, exist_ok=True)
     index = {}
-    for character in NAMES:
+    only = sys.argv[2].split(",") if len(sys.argv) > 2 else list(NAMES)
+    for character in only:
         print("==", character, flush=True)
         found, digests = [], set()
-        for source in (mchow, mojang):
+        for source in ((mojang,) if len(sys.argv) > 2 else (mchow, mojang)):
             if out_of_time():
                 print("  out of time")
                 break
@@ -310,7 +329,7 @@ def main():
                         found.append(item)
             except Exception as e:
                 print("  source failed", source.__name__, e)
-        found = found[:36]
+        found = found[:60]
         index[character] = []
         for i, (name, data, page) in enumerate(found):
             fn = f"{character}_{i:02d}.png"
