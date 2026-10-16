@@ -38,7 +38,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd skins_out && zip -qr ../skins-candidates.zip . && cd ..
-          gh release delete skins-candidates -y --cleanup-tag || true
-          gh release create skins-candidates --prerelease --target "$GITHUB_SHA" \
+          gh release create "skins-${{ github.run_id }}-${{ github.run_attempt }}" --prerelease \
             --title "Skin candidates" --notes "Скины-кандидаты для персонажей (служебный релиз)." \
             skins-candidates.zip $(ls skins_out/sheet_*.png 2>/dev/null)

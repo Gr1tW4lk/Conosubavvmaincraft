@@ -7,6 +7,8 @@ on:
       - "tools/music.txt"
       - ".github/workflows/skins.yml"
       - ".github/workflows/music.yml"
+      - ".github/workflows/release.yml"
+      - ".github/release-notes.md"
       - "**.md"
   workflow_dispatch:
 
