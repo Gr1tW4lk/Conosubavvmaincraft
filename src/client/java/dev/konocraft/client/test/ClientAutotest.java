@@ -164,8 +164,23 @@ public final class ClientAutotest {
 		});
 	}
 
+	private static int idle;
+
 	private static void tick(MinecraftClient client) {
-		if (client.world == null || client.player == null) return;
+		if (client.world == null || client.player == null) {
+			// report what is blocking the world from opening (title screen, a prompt, loading...)
+			if (++idle % 200 == 0) {
+				String screen = client.currentScreen == null ? "none" : client.currentScreen.getClass().getName()
+					+ " \"" + client.currentScreen.getTitle().getString() + "\"";
+				KonoCraft.LOGGER.info("[AUTOTEST] waiting for world ({} ticks), screen: {}", idle, screen);
+				if (idle <= 1200) screenshot(client, "00_waiting_" + idle);
+			}
+			if (idle == 4000) {
+				KonoCraft.LOGGER.error("[AUTOTEST] world never opened, giving up");
+				client.scheduleStop();
+			}
+			return;
+		}
 		if (!started) {
 			started = true;
 			KonoCraft.LOGGER.info("[AUTOTEST] joined world, starting tour of {} steps", steps.size());

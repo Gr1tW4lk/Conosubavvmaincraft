@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
-"""Downloads candidate fan skins for every character from public skin galleries and renders
-preview sheets, so the best-looking ones can be picked by eye. Runs in CI (the build machines
-have open internet access): python3 tools/fetch_skins.py OUT_DIR
+"""Collects candidate fan skins for every character and renders preview sheets, so the
+best-looking ones can be picked by eye. Runs in CI (the build machines have open internet):
+
+    python3 tools/fetch_skins.py OUT_DIR
+
+Sources:
+  * Mojang's public profile API: players named after a character very often wear that
+    character's skin, and the API serves the exact skin file.
+  * minecraft.how skin pages (ids found by web search) and its search pages.
 """
+import base64
+import hashlib
 import io
 import json
 import os
@@ -15,113 +23,217 @@ import urllib.request
 from PIL import Image, ImageDraw
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-
-QUERIES = {
-    "megumin": ["megumin", "megumin konosuba"],
-    "aqua": ["aqua konosuba", "aqua goddess"],
-    "darkness": ["darkness konosuba", "lalatina"],
-    "kazuma": ["kazuma", "kazuma konosuba"],
-    "eris": ["eris konosuba", "goddess eris"],
-    "wiz": ["wiz konosuba", "wiz lich"],
-    "yunyun": ["yunyun", "yunyun konosuba"],
-    "vanir": ["vanir", "vanir konosuba"],
-    "luna": ["luna konosuba", "guild receptionist"],
-    "chris": ["chris konosuba"],
-    "beldia": ["dullahan", "headless knight"],
-    "goblin": ["goblin"],
-    "undead_knight": ["undead knight", "skeleton knight"],
-    "townsfolk": ["villager medieval", "medieval peasant", "medieval merchant", "fantasy villager"],
-}
-PER_QUERY = 8
+DEADLINE = time.time() + 14 * 60
 DUMP_DIR = None
 
+DECOR = ["{}", "{}_", "_{}", "x{}x", "{}1", "{}2", "{}7", "{}X", "{}UwU", "{}_UwU", "{}Chan", "{}_Chan",
+         "{}Sama", "The{}", "i{}", "{}__", "{}MC", "{}_MC", "{}Konosuba", "{}_Konosuba", "Konosuba{}"]
 
-def dump(name, html):
-    """Keeps the raw page so the scraper can be fixed if a site changes its markup."""
-    if DUMP_DIR and html:
-        fn = os.path.join(DUMP_DIR, re.sub(r"[^a-z0-9]+", "_", name.lower())[:80] + ".html")
-        if not os.path.exists(fn):
-            with open(fn, "w") as fh:
-                fh.write(html)
+NAMES = {
+    "megumin": ["Megumin", "MeguminExplosion", "Megumin_Explosion", "ExplosionMegumin", "Explosion_Megumin",
+                "CrimsonMegumin", "BakuretsuMegumin", "Meguminn", "Megu_min", "Megumin_Bakuretsu"],
+    "aqua": ["Aqua", "AquaSama", "Aqua_Sama", "GoddessAqua", "Goddess_Aqua", "AquaGoddess", "Aqua_Goddess",
+             "AquaKonosuba", "UselessGoddess", "Useless_Goddess", "AquaTheGoddess", "Aquaa"],
+    "darkness": ["Darkness", "Lalatina", "LalatinaDustiness", "Dustiness", "DarknessKonosuba", "Darkness_Konosuba",
+                 "Lalatina_", "Darknesss", "CrusaderDarkness", "LalatinaFord"],
+    "kazuma": ["Kazuma", "KazumaSatou", "Kazuma_Satou", "SatouKazuma", "Satou_Kazuma", "KazumaSato", "Kazuma_Sato",
+               "Kazumaa", "KazumaKun", "Kazuma_Kun", "Kazuma_Steal", "KazumaStealer"],
+    "eris": ["Eris", "GoddessEris", "Goddess_Eris", "ErisSama", "Eris_Sama", "ErisKonosuba", "Eris_Konosuba", "Erisu",
+             "ErisPad", "ErisGoddess"],
+    "chris": ["ChrisKonosuba", "Chris_Konosuba", "ChrisThief", "Chris_Thief"],
+    "wiz": ["Wiz", "WizKonosuba", "Wiz_Konosuba", "WizLich", "Wiz_Lich", "LichWiz", "WizShop", "Wiz_Shop",
+            "IceWitchWiz", "Wizz"],
+    "yunyun": ["Yunyun", "YunYun", "Yun_Yun", "Yunyun_", "YunyunKonosuba", "Yunyun_Konosuba", "Yunyunn",
+               "YunyunChan", "Yunyun_Chan", "YunYunn"],
+    "vanir": ["Vanir", "VanirKonosuba", "Vanir_Konosuba", "DukeVanir", "Duke_Vanir", "VanirMask", "Vanir_",
+              "VanirSama", "Vanirr", "VanirDevil"],
+    "luna": ["LunaKonosuba", "Luna_Konosuba", "LunaGuild", "Luna_Guild", "GuildLuna", "Luna_Receptionist"],
+    "beldia": ["Beldia", "Verdia", "Beldia_", "BeldiaDullahan", "Dullahan", "DullahanKnight", "HeadlessKnight",
+               "Headless_Knight", "Dullahan_"],
+    "undead_knight": ["UndeadKnight", "Undead_Knight", "SkeletonKnight", "Skeleton_Knight", "DeathKnight",
+                      "Death_Knight", "UndeadWarrior"],
+    "goblin": ["Goblin", "GoblinKing", "Goblin_", "GreenGoblin", "Goblinn", "GoblinSlayer"],
+    "townsfolk": ["Villager", "Peasant", "Merchant", "Blacksmith", "Farmer", "Baker", "Innkeeper", "Tavernkeeper",
+                  "MedievalVillager", "Medieval_Villager", "Shopkeeper", "Fisherman", "Hunter", "Bard"],
+}
+DECORATED = {"megumin", "aqua", "darkness", "kazuma", "eris", "wiz", "yunyun", "vanir"}
+
+MCHOW_IDS = {
+    "megumin": [234124, 248349],
+    "aqua": [353623, 249345, 313174],
+    "darkness": [212296],
+    "kazuma": [227092],
+}
+MCHOW_QUERIES = {
+    "megumin": ["megumin"], "aqua": ["aqua"], "darkness": ["darkness", "lalatina"], "kazuma": ["kazuma"],
+    "eris": ["eris"], "wiz": ["wiz"], "yunyun": ["yunyun"], "vanir": ["vanir"], "beldia": ["dullahan"],
+    "luna": ["receptionist"], "chris": ["chris"],
+}
 
 
-def get(url, binary=False, retries=2):
+def out_of_time():
+    return time.time() > DEADLINE
+
+
+def get(url, binary=False, data=None, headers=None, retries=1):
     for attempt in range(retries + 1):
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
-            with urllib.request.urlopen(req, timeout=25) as r:
-                data = r.read()
-                return data if binary else data.decode("utf-8", "replace")
+            h = {"User-Agent": UA, "Accept": "*/*"}
+            if headers:
+                h.update(headers)
+            req = urllib.request.Request(url, data=data, headers=h)
+            with urllib.request.urlopen(req, timeout=15) as r:
+                body = r.read()
+                return body if binary else body.decode("utf-8", "replace")
         except Exception as e:
             if attempt == retries:
                 print("  fail", url, e)
                 return None
-            time.sleep(1.5)
+            time.sleep(1.0)
 
 
-def is_skin(data):
+def dump(name, text):
+    """Keeps raw responses so the scraper can be adjusted if a site changes its markup."""
+    if DUMP_DIR and text:
+        fn = os.path.join(DUMP_DIR, re.sub(r"[^a-z0-9]+", "_", name.lower())[:80] + ".html")
+        if not os.path.exists(fn):
+            with open(fn, "w") as fh:
+                fh.write(text)
+
+
+def skin_size_ok(data):
     try:
-        img = Image.open(io.BytesIO(data))
-        return img.size in ((64, 64), (64, 32))
+        return Image.open(io.BytesIO(data)).size in ((64, 64), (64, 32))
     except Exception:
         return False
 
 
-def skindex(query):
-    q = urllib.parse.quote(query.replace(" ", "-"))
-    html = get(f"https://www.minecraftskins.com/search/skin/{q}/1/")
-    if not html:
-        return []
-    dump("skindex " + query, html)
-    ids = []
-    for m in re.finditer(r'href="/skin/(\d+)/([^/"]+)/?"', html):
-        if m.group(1) not in [i for i, _ in ids]:
-            ids.append((m.group(1), m.group(2)))
-    out = []
-    for sid, slug in ids[:PER_QUERY]:
-        data = get(f"https://www.minecraftskins.com/skin/download/{sid}", binary=True)
-        if data and is_skin(data):
-            out.append((f"skindex-{sid}-{slug}", data, f"https://www.minecraftskins.com/skin/{sid}/{slug}/"))
-    return out
+# ---------------------------------------------------------------- Mojang
 
-
-def namemc(query):
-    q = urllib.parse.quote(query.replace(" ", "-").lower())
-    html = get(f"https://namemc.com/minecraft-skins/tag/{q}")
-    if not html:
-        html = get(f"https://namemc.com/minecraft-skins/search?q={urllib.parse.quote(query)}")
-    if not html:
-        return []
-    dump("namemc " + query, html)
-    out = []
-    seen = set()
-    for m in re.finditer(r'/skin/([0-9a-f]{16})', html):
-        sid = m.group(1)
-        if sid in seen:
-            continue
-        seen.add(sid)
-        data = get(f"https://s.namemc.com/i/{sid}.png", binary=True)
-        if data and is_skin(data):
-            out.append((f"namemc-{sid}", data, f"https://namemc.com/skin/{sid}"))
-        if len(out) >= PER_QUERY:
+def mojang_lookup(names):
+    found = {}
+    for i in range(0, len(names), 10):
+        if out_of_time():
             break
+        chunk = names[i:i + 10]
+        payload = json.dumps(chunk).encode()
+        body = get("https://api.minecraftservices.com/minecraft/profile/lookup/bulk/byname",
+                   data=payload, headers={"Content-Type": "application/json"})
+        if body is None:
+            body = get("https://api.mojang.com/profiles/minecraft",
+                       data=payload, headers={"Content-Type": "application/json"})
+        if body:
+            try:
+                for p in json.loads(body):
+                    found[p["name"]] = p["id"]
+            except Exception as e:
+                print("  bad lookup response", e, body[:200])
+        time.sleep(0.4)
+    return found
+
+
+def mojang_skin(uuid):
+    body = get(f"https://sessionserver.mojang.com/session/minecraft/profile/{uuid}")
+    if not body:
+        return None
+    try:
+        prof = json.loads(body)
+        tex = json.loads(base64.b64decode(prof["properties"][0]["value"]))
+        skin = tex["textures"].get("SKIN")
+        if not skin:
+            return None
+        url = skin["url"].replace("http://", "https://")
+        data = get(url, binary=True)
+        if data and skin_size_ok(data):
+            return data, url
+    except Exception as e:
+        print("  bad profile", uuid, e)
+    return None
+
+
+def mojang(character):
+    base = NAMES.get(character, [])
+    names = list(base)
+    if character in DECORATED:
+        names += [d.format(base[0]) for d in DECOR]
+    seen, uniq = set(), []
+    for n in names:
+        if 3 <= len(n) <= 16 and re.fullmatch(r"[A-Za-z0-9_]+", n) and n.lower() not in seen:
+            seen.add(n.lower())
+            uniq.append(n)
+    out = []
+    for name, uuid in mojang_lookup(uniq).items():
+        if out_of_time():
+            break
+        res = mojang_skin(uuid)
+        time.sleep(0.25)
+        if res:
+            out.append((f"player-{name}", res[0], f"https://namemc.com/profile/{name}"))
     return out
+
+
+# ---------------------------------------------------------------- minecraft.how
+
+def mchow_page(sid):
+    html = get(f"https://minecraft.how/skin/{sid}")
+    if not html:
+        return None
+    dump(f"mchow skin {sid}", html)
+    urls = re.findall(r'(https?://[^"\'\s<>]+?\.png)', html)
+    urls += ["https://minecraft.how" + u for u in re.findall(r'["\'](/[^"\'\s<>]+?\.png)', html)]
+    urls += [f"https://minecraft.how/skin/{sid}/download", f"https://minecraft.how/download/skin/{sid}"]
+    for u in urls:
+        data = get(u, binary=True, retries=0)
+        if data and skin_size_ok(data):
+            return data, u
+    return None
+
+
+def mchow(character):
+    out = []
+    ids = list(MCHOW_IDS.get(character, []))
+    for q in MCHOW_QUERIES.get(character, []):
+        for pattern in ("https://minecraft.how/skins?search={}", "https://minecraft.how/skins/search/{}",
+                        "https://minecraft.how/search?q={}"):
+            if out_of_time():
+                break
+            html = get(pattern.format(urllib.parse.quote(q)), retries=0)
+            if html:
+                dump("mchow search " + pattern.split("/")[-1] + " " + q, html)
+                for m in re.finditer(r'/skin/(\d+)', html):
+                    sid = int(m.group(1))
+                    if sid not in ids:
+                        ids.append(sid)
+    for sid in ids[:12]:
+        if out_of_time():
+            break
+        res = mchow_page(sid)
+        if res:
+            out.append((f"mchow-{sid}", res[0], f"https://minecraft.how/skin/{sid}"))
+    return out
+
+
+# ---------------------------------------------------------------- previews
+
+def to_modern(img):
+    img = img.convert("RGBA")
+    if img.size == (64, 32):
+        full = Image.new("RGBA", (64, 64))
+        full.paste(img, (0, 0))
+        full.paste(img.crop((0, 16, 16, 32)), (16, 48))
+        full.paste(img.crop((40, 16, 56, 32)), (32, 48))
+        img = full
+    return img
 
 
 def is_slim(img):
-    img = img.convert("RGBA")
-    if img.size != (64, 64):
-        return False
+    img = to_modern(img)
     return all(img.getpixel((54, y))[3] == 0 and img.getpixel((55, y))[3] == 0 for y in range(20, 32))
 
 
 def front(img):
     """Front view of a skin as a 16x32 figure (base + overlay layers)."""
-    img = img.convert("RGBA")
-    if img.size == (64, 32):
-        full = Image.new("RGBA", (64, 64))
-        full.paste(img, (0, 0))
-        img = full
+    img = to_modern(img)
     slim = is_slim(img)
     aw = 3 if slim else 4
     fig = Image.new("RGBA", (16, 32))
@@ -144,11 +256,7 @@ def front(img):
 
 
 def back(img):
-    img = img.convert("RGBA")
-    if img.size == (64, 32):
-        full = Image.new("RGBA", (64, 64))
-        full.paste(img, (0, 0))
-        img = full
+    img = to_modern(img)
     fig = Image.new("RGBA", (16, 32))
     fig.alpha_composite(img.crop((24, 8, 32, 16)), (4, 0))
     fig.alpha_composite(img.crop((56, 8, 64, 16)), (4, 0))
@@ -187,22 +295,22 @@ def main():
     DUMP_DIR = os.path.join(out_dir, "html")
     os.makedirs(DUMP_DIR, exist_ok=True)
     index = {}
-    for character, queries in QUERIES.items():
-        print("==", character)
-        found = []
-        names = set()
-        for q in queries:
-            for source in (skindex, namemc):
-                try:
-                    for item in source(q):
-                        if item[0] not in names:
-                            names.add(item[0])
-                            found.append(item)
-                except Exception as e:
-                    print("  source failed", source.__name__, q, e)
-            if len(found) >= 18:
+    for character in NAMES:
+        print("==", character, flush=True)
+        found, digests = [], set()
+        for source in (mchow, mojang):
+            if out_of_time():
+                print("  out of time")
                 break
-        found = found[:18]
+            try:
+                for item in source(character):
+                    h = hashlib.sha1(item[1]).hexdigest()
+                    if h not in digests:
+                        digests.add(h)
+                        found.append(item)
+            except Exception as e:
+                print("  source failed", source.__name__, e)
+        found = found[:36]
         index[character] = []
         for i, (name, data, page) in enumerate(found):
             fn = f"{character}_{i:02d}.png"
@@ -211,7 +319,7 @@ def main():
             sk = Image.open(io.BytesIO(data))
             index[character].append({"file": fn, "name": name, "page": page, "slim": front(sk)[1]})
         sheet(character, found, out_dir)
-        print("  found", len(found))
+        print("  found", len(found), flush=True)
     with open(os.path.join(out_dir, "index.json"), "w") as fh:
         json.dump(index, fh, indent=2)
 

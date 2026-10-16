@@ -82,6 +82,9 @@ public final class ServerAutotest {
 			check(dialogues > 60, "dialogues loaded: " + dialogues);
 			// Every entity type can be created and ticked
 			double x = 6.5, z = 20.5;
+			// no player is online, so keep the test chunks loaded or every entity is unloaded with them
+			for (int cx = 0; cx <= 5; cx++) w.setChunkForced(cx, 1, true);
+			w.setChunkForced(0, 18, true);
 			for (EntityType<?> type : Registries.ENTITY_TYPE) {
 				if (!Registries.ENTITY_TYPE.getId(type).getNamespace().equals(KonoCraft.MOD_ID)) continue;
 				if (type == ModEntities.DESTROYER || type == ModEntities.MAGIC_BOLT) continue;
@@ -113,7 +116,7 @@ public final class ServerAutotest {
 			int alive = 0;
 			for (Entity e : spawned) {
 				if (!e.isRemoved()) alive++;
-				else KonoCraft.LOGGER.warn("[AUTOTEST] entity removed: {}", Registries.ENTITY_TYPE.getId(e.getType()));
+				else KonoCraft.LOGGER.warn("[AUTOTEST] entity removed: {} ({})", Registries.ENTITY_TYPE.getId(e.getType()), e.getRemovalReason());
 			}
 			check(alive >= spawned.size() - 2, "spawned entities still alive: " + alive + "/" + spawned.size());
 			for (Entity e : spawned) e.discard();
