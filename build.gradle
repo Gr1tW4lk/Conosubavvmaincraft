@@ -1,0 +1,79 @@
+plugins {
+	id 'fabric-loom' version '1.7-SNAPSHOT'
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+repositories {
+}
+
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"konocraft" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+
+	runs {
+		// Headless world generation + logic self-test (used by CI).
+		autotestServer {
+			server()
+			name "Autotest Server"
+			vmArg "-Dkonocraft.autotest.server=true"
+			programArg "--nogui"
+			runDir "run"
+		}
+		// Client screenshot tour of the world (used by CI under Xvfb).
+		autotestClient {
+			client()
+			name "Autotest Client"
+			vmArg "-Dkonocraft.autotest.client=true"
+			programArgs "--quickPlaySingleplayer", "autotest", "--width", "1280", "--height", "720"
+			runDir "run"
+		}
+	}
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	// Bundle Fabric API so players only need Fabric Loader + this single jar.
+	include "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
+	it.options.encoding = "UTF-8"
+}
+
+java {
+	withSourcesJar()
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+}

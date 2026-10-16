@@ -1,0 +1,87 @@
+name: build
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build mod jar
+        run: |
+          chmod +x gradlew
+          ./gradlew build --stacktrace --no-daemon 2>&1 | tee build.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Server autotest (world generation + logic checks)
+        id: servertest
+        if: success()
+        run: |
+          mkdir -p run
+          echo "eula=true" > run/eula.txt
+          printf "online-mode=false\nspawn-protection=0\nlevel-name=world\nview-distance=8\n" > run/server.properties
+          timeout 900 ./gradlew runAutotestServer --no-daemon 2>&1 | tee server-test.log || true
+          grep -q "\[AUTOTEST\] RESULT PASS" server-test.log
+
+      - name: Install Xvfb + Mesa
+        if: always() && steps.servertest.outcome != 'skipped'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb libgl1-mesa-dri mesa-utils libglu1-mesa pulseaudio >/dev/null
+
+      - name: Client autotest (screenshot tour)
+        if: always() && steps.servertest.outcome != 'skipped'
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          MESA_GL_VERSION_OVERRIDE: "4.5"
+          ALSOFT_DRIVERS: "null"
+        run: |
+          mkdir -p run/saves
+          rm -rf run/saves/autotest
+          if [ -d run/world ]; then cp -r run/world run/saves/autotest; fi
+          printf "onboardAccessibility:false\npauseOnLostFocus:false\nskipMultiplayerWarning:true\njoinedFirstServer:true\ntutorialStep:none\nrenderDistance:10\nguiScale:2\nsoundCategory_master:0.0\nnarrator:0\nlang:ru_ru\n" > run/options.txt
+          timeout 1200 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runAutotestClient --no-daemon 2>&1 | tee client-test.log || true
+          ls -la run/screenshots || true
+
+      - name: Collect results
+        if: always()
+        run: |
+          mkdir -p ci-results
+          cp build.log server-test.log client-test.log ci-results/ 2>/dev/null || true
+          cp build/libs/*.jar ci-results/ 2>/dev/null || true
+          rm -f ci-results/*-sources.jar
+          cp run/screenshots/*.png ci-results/ 2>/dev/null || true
+          cp run/logs/latest.log ci-results/latest.log 2>/dev/null || true
+          cp -r run/crash-reports ci-results/ 2>/dev/null || true
+          cd ci-results && zip -qr ../ci-results.zip . && cd ..
+          ls -la ci-results
+
+      - name: Publish dev build
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="dev-${GITHUB_REF_NAME//\//-}"
+          gh release delete "$TAG" -y --cleanup-tag || true
+          gh release create "$TAG" --prerelease --target "$GITHUB_SHA" \
+            --title "Dev build ($GITHUB_REF_NAME @ ${GITHUB_SHA::7})" \
+            --notes "Автоматическая сборка для проверки. Скачивайте стабильные версии из релизов без пометки Pre-release." \
+            ci-results.zip ci-results/*.jar
