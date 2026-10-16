@@ -34,9 +34,11 @@ public final class KonoRenderers {
 	}
 
 	public static void register() {
-		for (String key : new String[]{"eris", "kazuma", "luna", "wiz", "yunyun"}) {
-			EntityRendererRegistry.register(ModEntities.byCharacter(key), ctx -> new CharacterRenderer<>(ctx, key, 1.0f));
-		}
+		EntityRendererRegistry.register(ModEntities.ERIS, ctx -> new CharacterRenderer<>(ctx, "eris", 1.0f));
+		EntityRendererRegistry.register(ModEntities.KAZUMA, ctx -> new CharacterRenderer<>(ctx, "kazuma", 1.0f));
+		EntityRendererRegistry.register(ModEntities.LUNA, ctx -> new CharacterRenderer<>(ctx, "luna", 1.0f));
+		EntityRendererRegistry.register(ModEntities.WIZ, ctx -> new CharacterRenderer<>(ctx, "wiz", 1.0f));
+		EntityRendererRegistry.register(ModEntities.YUNYUN, ctx -> new CharacterRenderer<>(ctx, "yunyun", 0.95f));
 		EntityRendererRegistry.register(ModEntities.VANIR, ctx -> new CharacterRenderer<>(ctx, "vanir", 1.1f));
 		EntityRendererRegistry.register(ModEntities.MEGUMIN, ctx -> new CharacterRenderer<>(ctx, "megumin", 0.92f));
 		EntityRendererRegistry.register(ModEntities.AQUA, ctx -> new CharacterRenderer<>(ctx, "aqua", 1.0f));
