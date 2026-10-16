@@ -292,7 +292,7 @@ MINESKIN_QUERIES = {
     "yunyun": ["yunyun", "yun yun"], "luna": ["luna", "receptionist", "guild"],
     "beldia": ["beldia", "dullahan", "headless", "black knight"], "konosuba": ["konosuba"],
     "goblin": ["goblin"], "undead_knight": ["skeleton knight", "undead knight"],
-    "sena": ["sena", "prosecutor", "police woman", "detective"], "alderp": ["alderp", "fat noble", "fat king", "greedy"],
+    "sena": ["secretary", "office lady", "glasses girl", "suit girl", "business woman"], "alderp": ["alderp", "fat noble", "fat king", "greedy"],
     "ignis": ["noble", "aristocrat", "duke", "lord"], "smith": ["blacksmith", "smith", "dwarf"],
     "innkeeper": ["innkeeper", "barmaid", "tavern"], "bathkeeper": ["kimono", "yukata", "onsen"],
     "merchant": ["merchant", "trader", "shopkeeper"],
