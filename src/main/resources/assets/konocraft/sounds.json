@@ -1,0 +1,140 @@
+{
+  "music.axel": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "konocraft:music/axel",
+        "stream": true
+      }
+    ]
+  },
+  "music.fields": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "konocraft:music/fields",
+        "stream": true
+      }
+    ]
+  },
+  "music.castle": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "konocraft:music/castle",
+        "stream": true
+      }
+    ]
+  },
+  "music.afterlife": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "konocraft:music/afterlife",
+        "stream": true
+      }
+    ]
+  },
+  "music.battle": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "konocraft:music/battle",
+        "stream": true
+      }
+    ]
+  },
+  "music.boss": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "konocraft:music/boss",
+        "stream": true
+      }
+    ]
+  },
+  "music.destroyer": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "konocraft:music/destroyer",
+        "stream": true
+      }
+    ]
+  },
+  "music.ending": {
+    "category": "music",
+    "sounds": [
+      {
+        "name": "konocraft:music/ending",
+        "stream": true
+      }
+    ]
+  },
+  "fx.explosion_big": {
+    "sounds": [
+      "konocraft:fx/explosion_big"
+    ],
+    "subtitle": "subtitles.konocraft.fx.explosion_big"
+  },
+  "fx.chant": {
+    "sounds": [
+      "konocraft:fx/chant"
+    ],
+    "subtitle": "subtitles.konocraft.fx.chant"
+  },
+  "fx.alarm": {
+    "sounds": [
+      "konocraft:fx/alarm"
+    ],
+    "subtitle": "subtitles.konocraft.fx.alarm"
+  },
+  "fx.blip": {
+    "sounds": [
+      "konocraft:fx/blip"
+    ],
+    "subtitle": "subtitles.konocraft.fx.blip"
+  },
+  "fx.level_up": {
+    "sounds": [
+      "konocraft:fx/level_up"
+    ],
+    "subtitle": "subtitles.konocraft.fx.level_up"
+  },
+  "fx.holy": {
+    "sounds": [
+      "konocraft:fx/holy"
+    ],
+    "subtitle": "subtitles.konocraft.fx.holy"
+  },
+  "entity.toad.croak": {
+    "sounds": [
+      "konocraft:entity/toad_croak"
+    ],
+    "subtitle": "subtitles.konocraft.entity.toad.croak"
+  },
+  "entity.toad.gulp": {
+    "sounds": [
+      "konocraft:entity/toad_gulp"
+    ],
+    "subtitle": "subtitles.konocraft.entity.toad.gulp"
+  },
+  "entity.cabbage.whoosh": {
+    "sounds": [
+      "konocraft:entity/cabbage_whoosh"
+    ],
+    "subtitle": "subtitles.konocraft.entity.cabbage.whoosh"
+  },
+  "voice.aqua_cry": {
+    "sounds": [
+      "konocraft:voice/aqua_cry"
+    ],
+    "subtitle": "subtitles.konocraft.voice.aqua_cry"
+  },
+  "fx.coin": {
+    "sounds": [
+      "konocraft:fx/coin"
+    ],
+    "subtitle": "subtitles.konocraft.fx.coin"
+  }
+}

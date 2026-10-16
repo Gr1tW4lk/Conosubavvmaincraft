@@ -1,0 +1,18 @@
+{
+  "type": "konocraft:konosuba",
+  "generator": {
+    "type": "konocraft:konosuba",
+    "biome_source": {
+      "type": "konocraft:konosuba",
+      "town": "konocraft:axel",
+      "plains": "konocraft:meadows",
+      "toad_plains": "konocraft:toad_plains",
+      "farms": "konocraft:cabbage_farms",
+      "lake": "konocraft:lake",
+      "forest": "konocraft:forest",
+      "castle": "konocraft:haunted_hill",
+      "battlefield": "konocraft:southern_plains",
+      "afterlife": "konocraft:afterlife"
+    }
+  }
+}

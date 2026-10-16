@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "konocraft:block/quest_board"
+    },
+    "facing=east": {
+      "model": "konocraft:block/quest_board",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "konocraft:block/quest_board",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "konocraft:block/quest_board",
+      "y": 270
+    }
+  }
+}

@@ -1,6 +1,9 @@
 package dev.konocraft.client.test;
 
 import dev.konocraft.KonoCraft;
+import dev.konocraft.client.screen.CardScreen;
+import dev.konocraft.world.Regions;
+import dev.konocraft.world.Terrain;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.ScreenshotRecorder;
@@ -17,6 +20,7 @@ import java.util.function.Consumer;
  */
 public final class ClientAutotest {
 	private static final boolean ENABLED = Boolean.getBoolean("konocraft.autotest.client");
+	private static final int LOAD = 260;
 
 	private record Step(int delay, Consumer<MinecraftClient> action) {
 	}
@@ -57,20 +61,103 @@ public final class ClientAutotest {
 		steps.add(new Step(delay, action));
 	}
 
-	private static void shot(String name, String tp) {
-		add(10, c -> command(c, tp));
-		add(120, c -> screenshot(c, name));
+	private static String tp(double x, double y, double z, float yaw, float pitch) {
+		return String.format(java.util.Locale.ROOT, "execute in konocraft:konosuba run tp @s %.1f %.1f %.1f %.1f %.1f", x, y, z, yaw, pitch);
+	}
+
+	private static double ground(double x, double z) {
+		return Math.max(Terrain.heightAt((int) Math.floor(x), (int) Math.floor(z)), Regions.SEA_LEVEL) + 1;
+	}
+
+	private static void shot(String name, String command, int delay) {
+		add(10, c -> {
+			if (c.currentScreen != null) c.setScreen(null);
+			command(c, command);
+		});
+		add(delay, c -> screenshot(c, name));
+	}
+
+	private static void summon(String type, double x, double y, double z, float yaw) {
+		add(2, c -> command(c, String.format(java.util.Locale.ROOT,
+			"execute in konocraft:konosuba run summon konocraft:%s %.1f %.1f %.1f {NoAI:1b,Rotation:[%.1ff,0f],Tags:[\"konotest\"],PersistenceRequired:1b}",
+			type, x, y, z, yaw)));
 	}
 
 	private static void buildTour() {
 		add(100, c -> {
 			c.options.hudHidden = false;
-			command(c, "gamemode creative");
-			command(c, "time set noon");
+			command(c, "gamemode spectator");
+			command(c, "time set 6000");
 			command(c, "gamerule doDaylightCycle false");
-			command(c, "weather clear");
+			command(c, "gamerule doMobSpawning false");
+			command(c, "weather clear 100000");
 		});
-		shot("00_spawn", "tp @s ~ ~ ~ 0 20");
+		int ax = Regions.AFTERLIFE_X, ay = Regions.AFTERLIFE_Y, az = Regions.AFTERLIFE_Z;
+		shot("01_afterlife", tp(ax + 0.5, ay + 2.6, az + 11.5, 180, 8), LOAD);
+		add(10, c -> command(c, "gamemode creative"));
+		add(10, c -> command(c, "konocraft dialogue prologue"));
+		add(160, c -> screenshot(c, "02_dialogue"));
+		add(10, c -> command(c, "konocraft unstuck"));
+		add(5, c -> command(c, "gamemode spectator"));
+		shot("03_axel_plaza", tp(0.5, 68.5, 30.5, 180, 8), LOAD);
+		shot("04_axel_aerial", tp(95, 125, 110, 140, 32), LOAD + 100);
+		shot("05_guild", tp(-28.5, 67, 4.5, 180, 4), LOAD);
+		shot("06_guild_inside", tp(-15.5, 67.6, -17.5, 125, 12), LOAD);
+		shot("07_wiz_shop", tp(23.5, 67.2, -16.5, 180, 14), LOAD);
+		shot("08_church", tp(28.5, 67.2, 19.5, 0, 6), LOAD);
+		shot("09_stable_houses", tp(-30, 78, 75, 200, 25), LOAD);
+		shot("10_castle", tp(196, 104, -190, -135, 18), LOAD + 100);
+		shot("11_throne_room", tp(250.5, Regions.CASTLE_Y + 4, -248.5, 180, 8), LOAD);
+		shot("12_battlefield", tp(-30, ground(-30, 125) + 12, 125, -40, 15), LOAD);
+		shot("13_lake", tp(-40, 80, -150, 180, 20), LOAD);
+		shot("14_farms", tp(-160, 78, 70, 140, 20), LOAD);
+		// Characters lineup on the plaza
+		add(10, c -> {
+			command(c, "gamemode creative");
+			command(c, tp(0.5, 65, 22.5, 180, 0));
+		});
+		String[] chars = {"megumin", "aqua", "darkness", "kazuma", "eris", "luna", "wiz", "vanir", "yunyun"};
+		for (int i = 0; i < chars.length; i++) {
+			summon(chars[i], -8 + i * 2 + 0.5, 65, 17.5, 0);
+		}
+		shot("15_characters", tp(0.5, 66.4, 23.5, 180, 4), 120);
+		// Monsters at the toad plains
+		double tx = 196, tz = 18;
+		add(10, c -> command(c, tp(tx, ground(tx, tz), tz, -90, 0)));
+		add(120, c -> {
+		});
+		summon("giant_toad", tx + 9, ground(tx + 9, tz - 4), tz - 4, 90);
+		summon("toad_king", tx + 16, ground(tx + 16, tz + 5), tz + 5, 90);
+		summon("goblin", tx + 7, ground(tx + 7, tz + 3), tz + 3, 90);
+		summon("undead_knight", tx + 7, ground(tx + 7, tz + 5), tz + 5, 90);
+		summon("destroyer_golem", tx + 9, ground(tx + 9, tz + 1), tz + 1, 90);
+		summon("flying_cabbage", tx + 6, ground(tx + 6, tz - 1) + 1.5, tz - 1, 90);
+		summon("beldia", tx + 8, ground(tx + 8, tz - 8), tz - 8, 90);
+		shot("16_monsters", tp(tx - 1, ground(tx, tz) + 1.6, tz, -90, 6), 140);
+		// The Destroyer on the southern plain
+		double dz = 330;
+		summon("destroyer", 0.5, ground(0.5, dz), dz, 180);
+		summon("barrier_crystal", 9.5, ground(9.5, dz - 4), dz - 4, 0);
+		summon("destroyer_core", -4.5, ground(-4.5, dz - 18), dz - 18, 0);
+		shot("17_destroyer", tp(-22, ground(-22, dz - 35) + 6, dz - 35, -150, 8), LOAD);
+		// Explosion!
+		add(10, c -> command(c, tp(0.5, ground(0.5, 240) + 2, 240, 0, 8)));
+		add(LOAD, c -> command(c, "konocraft fx magic_circle"));
+		add(50, c -> command(c, "konocraft fx explosion"));
+		add(8, c -> screenshot(c, "18_explosion"));
+		add(25, c -> screenshot(c, "19_explosion_after"));
+		// UI
+		add(40, c -> {
+			command(c, "konocraft class adventurer");
+			command(c, "konocraft money 123456");
+			command(c, "konocraft stage 21");
+		});
+		add(60, c -> screenshot(c, "20_hud"));
+		add(10, c -> c.setScreen(new CardScreen()));
+		add(30, c -> screenshot(c, "21_card"));
+		add(10, c -> c.setScreen(null));
+		add(10, c -> command(c, "konocraft shop wiz"));
+		add(40, c -> screenshot(c, "22_shop"));
 		add(20, c -> {
 			KonoCraft.LOGGER.info("[AUTOTEST] client tour finished");
 			c.scheduleStop();

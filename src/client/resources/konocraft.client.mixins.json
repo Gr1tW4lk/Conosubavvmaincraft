@@ -2,7 +2,9 @@
 	"required": true,
 	"package": "dev.konocraft.mixin.client",
 	"compatibilityLevel": "JAVA_17",
-	"client": [],
+	"client": [
+		"MinecraftClientMixin"
+	],
 	"injectors": {
 		"defaultRequire": 1
 	}

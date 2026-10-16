@@ -37,6 +37,7 @@ loom {
 			client()
 			name "Autotest Client"
 			vmArg "-Dkonocraft.autotest.client=true"
+			vmArg "-Dkonocraft.noautostart=true"
 			programArgs "--quickPlaySingleplayer", "autotest", "--width", "1280", "--height", "720"
 			runDir "run"
 		}
