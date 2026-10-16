@@ -143,13 +143,13 @@ public final class TownLife {
 	}
 
 	public static final Worker[] WORKERS = {
-		new Worker(TownsfolkEntity.SMITH, "smith", "Кузнец Брок", 3, Items.IRON_AXE),
-		new Worker(TownsfolkEntity.INNKEEPER, "innkeeper", "Хозяйка гостиницы Марта", 2, Items.AIR),
-		new Worker(TownsfolkEntity.BATHKEEPER, "bath_keeper", "Банщица Юки", 4, Items.AIR),
-		new Worker(TownsfolkEntity.POLICE, "sena", "Сена", 5, Items.BOOK),
-		new Worker(TownsfolkEntity.LORD, "alderp_lord", "Лорд Алдерп", 0, Items.GOLD_INGOT),
-		new Worker(TownsfolkEntity.NOBLE, "ignis", "Лорд Игнис Дастинесс", 1, Items.AIR),
-		new Worker(TownsfolkEntity.MERCHANT, "merchant", "Торговец Хенрик", 3, Items.APPLE),
+		new Worker(TownsfolkEntity.SMITH, "smith", "Кузнец Брок", 7, Items.IRON_AXE),
+		new Worker(TownsfolkEntity.INNKEEPER, "innkeeper", "Хозяйка гостиницы Марта", 8, Items.AIR),
+		new Worker(TownsfolkEntity.BATHKEEPER, "bath_keeper", "Банщица Юки", 9, Items.AIR),
+		new Worker(TownsfolkEntity.POLICE, "sena", "Сена", 10, Items.BOOK),
+		new Worker(TownsfolkEntity.LORD, "alderp_lord", "Лорд Алдерп", 11, Items.GOLD_INGOT),
+		new Worker(TownsfolkEntity.NOBLE, "ignis", "Лорд Игнис Дастинесс", 12, Items.AIR),
+		new Worker(TownsfolkEntity.MERCHANT, "merchant", "Торговец Хенрик", 13, Items.APPLE),
 	};
 
 	private static void workers(ServerWorld w, List<TownsfolkEntity> folk) {

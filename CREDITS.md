@@ -21,6 +21,13 @@
 | Горожанин (повар) | [Chef](https://namemc.com/profile/Chef) |
 | Горожанин (трактирщик) | [Innkeeper](https://namemc.com/profile/Innkeeper) |
 | Горожанин (торговец) | [Merchant](https://namemc.com/profile/Merchant) |
+| Киль | [MineSkin: Lich](https://mineskin.org/d488b35142854c15b70d7e2ac76d7725) |
+| Кузнец Брок | [MineSkin: blacksmith](https://mineskin.org/87e9a5b192744c15a3d3947d6b7f9de8) |
+| Хозяйка гостиницы Марта | [MineSkin: Innkeeper](https://mineskin.org/8f1241d525d44aa2bea92a9fa058e4cb) |
+| Банщица Юки | [MineSkin: kimono](https://mineskin.org/285ed0d6f6964ad192869a1287a1a10b) |
+| Лорд Алдерп | [MineSkin: king](https://mineskin.org/84a5f2be2c414f23b96610010f50ad50) |
+| Игнис Дастинесс | [MineSkin: noble](https://mineskin.org/c731d6d3223c4274a4d9faa88ddce5d8) |
+| Торговец Хенрик | [MineSkin: Merchant](https://mineskin.org/17bee1f040104a5b883894c0a03fe53e) |
 
 Скины Бельдии и монстров, все модели, текстуры и звуковые эффекты сделаны для мода с нуля.
 

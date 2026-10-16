@@ -20,6 +20,8 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	/** Skins for ordinary citizens; variant 6 is Keele's. */
 	public static final int VARIANTS = 6;
 	public static final int KEELE_VARIANT = 6;
+	/** All skins: random citizens, Keele, then one per townsperson with a job (7..13). */
+	public static final int SKINS = 14;
 	public static final int CITIZEN = 0, GUARD = 1, BUILDER = 2, KEELE = 3;
 	/** Townspeople with a job and a fixed place: they stay at their counter all day. */
 	public static final int SMITH = 4, INNKEEPER = 5, BATHKEEPER = 6, POLICE = 7, LORD = 8, NOBLE = 9, MERCHANT = 10;
@@ -129,7 +131,7 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	}
 
 	public void setVariant(int v) {
-		dataTracker.set(VARIANT, Math.floorMod(v, VARIANTS + 1));
+		dataTracker.set(VARIANT, Math.floorMod(v, SKINS));
 	}
 
 	public void setHome(BlockPos pos) {
