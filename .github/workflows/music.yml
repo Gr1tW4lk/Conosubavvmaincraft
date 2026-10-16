@@ -1,0 +1,45 @@
+name: fetch-music
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - tools/music.txt
+      - .github/workflows/music.yml
+
+permissions:
+  contents: write
+
+jobs:
+  music:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and convert tracks
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q ffmpeg >/dev/null
+          mkdir -p music_out
+          grep -v '^#' tools/music.txt | while IFS='|' read -r event title; do
+            [ -z "$title" ] && continue
+            slug=$(echo "$title" | tr 'A-Z' 'a-z' | tr -c 'a-z0-9\n' '_' | sed 's/__*/_/g; s/_$//')
+            [ -f "music_out/$slug.ogg" ] && continue
+            url="https://incompetech.com/music/royalty-free/mp3-royaltyfree/$(python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1]))' "$title").mp3"
+            if curl -sfL --retry 2 -A "Mozilla/5.0" -o "music_out/$slug.mp3" "$url"; then
+              ffmpeg -loglevel error -y -i "music_out/$slug.mp3" -vn -ac 2 -ar 44100 -c:a libvorbis -q:a 2 "music_out/$slug.ogg" && rm "music_out/$slug.mp3"
+              echo "OK   $event | $title -> $slug.ogg ($(du -k music_out/$slug.ogg | cut -f1) KB)" | tee -a music_out/report.txt
+            else
+              echo "FAIL $event | $title ($url)" | tee -a music_out/report.txt
+            fi
+          done
+          ls -la music_out
+      - name: Publish
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd music_out && zip -qr ../music.zip . && cd ..
+          gh release delete music-candidates -y --cleanup-tag || true
+          gh release create music-candidates --prerelease --target "$GITHUB_SHA" \
+            --title "Music candidates" --notes "Royalty-free music (Kevin MacLeod, CC BY 4.0) for the mod (служебный релиз)." \
+            music.zip music_out/report.txt

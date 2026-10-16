@@ -1,0 +1,21 @@
+# event|Kevin MacLeod track title (incompetech.com, CC BY 4.0)
+axel|Minstrel Guild
+axel|Thatched Villagers
+axel|Pippin the Hunchback
+fields|Celtic Impulse
+fields|Lord of the Land
+fields|Achaidh Cheide
+castle|Gathering Darkness
+castle|Darkling
+afterlife|Dreamy Flashback
+afterlife|Heartwarming
+afterlife|Healing
+battle|Heroic Age
+battle|Five Armies
+boss|Volatile Reaction
+boss|Rynos Theme
+destroyer|Crossing the Chasm
+destroyer|Five Armies
+ending|Fluffing a Duck
+ending|Monkeys Spinning Monkeys
+ending|Carefree
