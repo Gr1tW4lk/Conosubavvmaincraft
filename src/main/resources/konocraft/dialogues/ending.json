@@ -13,7 +13,8 @@
         "letterbox 120",
         "time sunset",
         "npc wiz luna_side",
-        "npc vanir guild_darkness"
+        "npc vanir guild_darkness",
+        "look guild_table"
       ]
     },
     {
@@ -42,7 +43,7 @@
       "t": "Дверь гильдии распахивается. На пороге стоит парень в зелёном плаще. Совершенно живой и совершенно непрозрачный.",
       "auto": 80,
       "do": [
-        "npc kazuma guild_inside",
+        "npc kazuma guild_door",
         "look @kazuma",
         "fx holy @kazuma"
       ]

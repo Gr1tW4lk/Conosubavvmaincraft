@@ -43,6 +43,7 @@ public final class Locations {
 	public static final Loc AXEL = add("axel", 0.5, 65, 9.5, 180, "Аксель, площадь");
 	public static final Loc GUILD = add("guild", -28.5, 65, -11.5, 180, "Гильдия авантюристов");
 	public static final Loc GUILD_INSIDE = add("guild_inside", -28.5, 65, -17.5, 180, "Гильдия авантюристов");
+	public static final Loc GUILD_DOOR = add("guild_door", -28.5, 65, -15.5, 180, "Гильдия авантюристов");
 	public static final Loc LUNA = add("luna", -27.5, 65, -37.5, 0, "Стойка регистрации");
 	public static final Loc GUILD_AQUA = add("guild_aqua", -18.5, 65, -28.5, 90, "Таверна гильдии");
 	public static final Loc GUILD_MEGUMIN = add("guild_megumin", -18.5, 65, -22.5, 90, "Таверна гильдии");

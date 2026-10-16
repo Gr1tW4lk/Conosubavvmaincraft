@@ -127,7 +127,10 @@ public class KonoNpcEntity extends PathAwareEntity {
 		Speakers.Speaker sp = Speakers.get(characterKey());
 		Text msg = Text.literal("[" + sp.name() + "] ").styled(s -> s.withColor(sp.color())).append(Text.literal(text).styled(s -> s.withColor(0xFFFFFF)));
 		for (PlayerEntity p : getWorld().getPlayers()) {
-			if (p.squaredDistanceTo(this) < 28 * 28) p.sendMessage(msg, false);
+			// idle chatter would scroll over the dialogue box during scenes
+			if (p.squaredDistanceTo(this) < 28 * 28 && !(p instanceof ServerPlayerEntity listener && dev.konocraft.story.DialogueManager.inDialogue(listener))) {
+				p.sendMessage(msg, false);
+			}
 		}
 	}
 

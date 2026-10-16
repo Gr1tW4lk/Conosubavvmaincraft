@@ -189,7 +189,7 @@ public class DialogueScreen extends Screen {
 		if (hasText) {
 			int x1 = 12, x2 = width - 12;
 			int y1 = height - BOX_HEIGHT - 8, y2 = height - 8;
-			ctx.fill(x1, y1, x2, y2, 0xD0101018);
+			ctx.fill(x1, y1, x2, y2, 0xF0101018);
 			int border = 0xFF000000 | color;
 			ctx.fill(x1, y1, x2, y1 + 2, border);
 			ctx.fill(x1, y2 - 1, x2, y2, 0x80FFFFFF & border);
