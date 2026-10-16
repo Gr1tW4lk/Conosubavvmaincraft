@@ -80,6 +80,8 @@ jobs:
           if [ -d run/world ]; then cp -r run/world run/saves/story; fi
           timeout 2400 xvfb-run -a -s "-screen 0 960x540x24" ./gradlew runAutotestStory --no-daemon 2>&1 | tee story-test.log || true
           grep -E "\[STORY\]|\[AUTOTEST\] STORY" story-test.log | tail -60 || true
+          if grep -q "unexpected exception\|Exception in server tick loop" story-test.log client-test.log; then echo "::error::The game crashed"; exit 1; fi
+          grep -q "\[AUTOTEST\] STORY COMPLETE" story-test.log || { echo "::error::The story bot did not finish the campaign"; exit 1; }
 
       - name: Collect results
         if: always()

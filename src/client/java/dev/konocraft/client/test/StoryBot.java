@@ -32,6 +32,9 @@ public final class StoryBot {
 	private static int shots;
 	private static boolean setUp;
 	private static boolean finished;
+	private static boolean complete;
+	private static int idleAfterEnd;
+	private static int endingLines;
 	private static int stopAt;
 	private static String lastObjective = "";
 	private static String lastLine = "";
@@ -68,6 +71,7 @@ public final class StoryBot {
 			ClientAutotest.command(c, "gamerule doDaylightCycle false");
 			ClientAutotest.command(c, "time set 6000");
 			ClientAutotest.command(c, "weather clear 1000000");
+			ClientAutotest.command(c, "gamerule sendCommandFeedback false");
 		}
 		String objective = ClientState.objective == null ? "" : ClientState.objective;
 		if (!objective.equals(lastObjective)) {
@@ -75,10 +79,9 @@ public final class StoryBot {
 			sinceProgress = 0;
 			log("objective: {}", objective);
 			shot(c, "objective");
-			if (objective.contains("Свободная игра")) {
+			if (objective.contains("Свободная игра") && !complete) {
 				KonoCraft.LOGGER.info("[AUTOTEST] STORY COMPLETE in {} s", ticks / 20);
-				finish(c);
-				return;
+				complete = true;
 			}
 		}
 		if (sinceProgress > STUCK_TICKS || ticks > TIME_LIMIT) {
@@ -92,6 +95,16 @@ public final class StoryBot {
 		if (actionCooldown > 0) actionCooldown--;
 		if (ticks % 5 != 0) return;
 
+		// After the last quest, watch the ending to its last line, then leave the world
+		if (complete) {
+			if (c.currentScreen instanceof DialogueScreen) {
+				idleAfterEnd = 0;
+			} else if (++idleAfterEnd > 40) {
+				shot(c, "after_ending");
+				finish(c);
+				return;
+			}
+		}
 		// 1. Dialogues: read everything, choose a different answer each time the same question repeats
 		if (c.currentScreen instanceof DialogueScreen d) {
 			String line = d.autotestLine();
@@ -106,6 +119,7 @@ public final class StoryBot {
 				ClientAutotest.command(c, "konocraft unstuck");
 				return;
 			}
+			if (complete && ++endingLines % 6 == 0) shot(c, "ending");
 			int visits = seenLines.merge(line, 1, Integer::sum);
 			d.autotestStep(visits - 1);
 			return;
@@ -117,7 +131,7 @@ public final class StoryBot {
 		}
 
 		// 2. Fights and quest targets
-		if (actionCooldown == 0 && fight(c, objective)) {
+		if (!complete && actionCooldown == 0 && fight(c, objective)) {
 			actionCooldown = 20;
 			return;
 		}

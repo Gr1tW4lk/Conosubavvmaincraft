@@ -77,7 +77,13 @@ public final class Story {
 				state.setFlag("rules_set", true);
 			}
 		});
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> server.execute(() -> onJoin(handler.player)));
+		// JOIN fires while vanilla is still adding the player to the world, and server.execute() would
+		// run right away on the server thread; teleporting to another dimension at that point leaves
+		// the player registered in the wrong world's chunk tracker (crash on disconnect).
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> dev.konocraft.util.Scheduler.after(5, () -> {
+			ServerPlayerEntity player = server.getPlayerManager().getPlayer(handler.player.getUuid());
+			if (player != null && !player.isRemoved()) onJoin(player);
+		}));
 		ServerPlayerEvents.AFTER_RESPAWN.register(Story::onRespawn);
 		ServerLivingEntityEvents.AFTER_DEATH.register(Story::onDeath);
 		ServerTickEvents.END_SERVER_TICK.register(Story::tick);
