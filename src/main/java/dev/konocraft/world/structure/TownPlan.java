@@ -21,7 +21,7 @@ public final class TownPlan {
 	/** Houses stay inside this square (the lane along the wall is outside it). */
 	public static final int LIM = H - 9;
 
-	public static final byte FREE = 0, STREET = 1, LANDMARK = 2, HOUSE = 3, PLAZA = 4, WALL = 5, CANAL = 6;
+	public static final byte FREE = 0, STREET = 1, LANDMARK = 2, HOUSE = 3, PLAZA = 4, WALL = 5, QUAY = 6;
 
 	/** kind: A avenue, R boulevard, I side street, L lane, C canal quay. */
 	public record Rect(int x1, int z1, int x2, int z2, char kind) {
@@ -133,7 +133,7 @@ public final class TownPlan {
 			}
 		}
 		for (Landmark l : LANDMARKS) mark(g, l.x1, l.z1, l.x2, l.z2, LANDMARK);
-		mark(g, CANAL.x1, CANAL.z1, CANAL.x2, CANAL.z2, CANAL);
+		mark(g, CANAL.x1, CANAL.z1, CANAL.x2, CANAL.z2, QUAY);
 		for (Rect r : STREETS) mark(g, r.x1, r.z1, r.x2, r.z2, STREET);
 		grid = g;
 		List<Lot> out = new ArrayList<>();

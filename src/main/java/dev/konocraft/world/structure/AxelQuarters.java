@@ -553,7 +553,7 @@ final class AxelQuarters {
 		for (TownPlan.Rect r : TownPlan.STREETS) {
 			if (r.x1() > x1 || r.x2() < x2 || r.z1() > TownPlan.CANAL_Z2 || r.z2() < TownPlan.CANAL_Z1) continue;
 			for (int z : new int[]{r.z1() - 1, r.z2() + 1}) {
-				if (TownPlan.cell(x1, z) != TownPlan.CANAL) continue;
+				if (TownPlan.cell(x1, z) != TownPlan.QUAY) continue;
 				for (int x = x1; x <= x2; x++) {
 					b.set(x, G, z, Blocks.STONE_BRICKS.getDefaultState());
 					b.set(x, F, z, Blocks.STONE_BRICK_WALL.getDefaultState());
@@ -563,9 +563,9 @@ final class AxelQuarters {
 		// quays
 		for (int z = TownPlan.CANAL.z1(); z <= TownPlan.CANAL.z2(); z++) {
 			for (int x : new int[]{x1 - 2, x1 - 1, x2 + 1, x2 + 2}) {
-				if (TownPlan.cell(x, z) == TownPlan.CANAL) b.set(x, G, z, AxelTown.cobbleStreet(x, z));
+				if (TownPlan.cell(x, z) == TownPlan.QUAY) b.set(x, G, z, AxelTown.cobbleStreet(x, z));
 			}
-			if (Math.floorMod(z, 16) == 8 && TownPlan.cell(x1 - 1, z) == TownPlan.CANAL) {
+			if (Math.floorMod(z, 16) == 8 && TownPlan.cell(x1 - 1, z) == TownPlan.QUAY) {
 				for (int x : new int[]{x1 - 1, x2 + 1}) {
 					b.set(x, F, z, Blocks.STONE_BRICK_WALL.getDefaultState());
 					b.set(x, F + 1, z, Blocks.DARK_OAK_FENCE.getDefaultState());
