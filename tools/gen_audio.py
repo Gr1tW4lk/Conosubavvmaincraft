@@ -538,21 +538,23 @@ EVENTS = {
 def main():
     import sys
     only = sys.argv[1:]
+    # The soundtrack is Kevin MacLeod's music now (tools/music.txt); the synth versions are only
+    # rendered on request: python3 tools/gen_audio.py --synth-music
     for name, fn in MUSIC.items():
-        if only and name not in only:
-            continue
+        if "--synth-music" not in only:
+            break
         write_ogg(fn(), os.path.join(SOUNDS, "music", name + ".ogg"), 3)
+    only = [o for o in only if o != "--synth-music"]
     for name, fn in SFX.items():
         if only and name.split("/")[-1] not in only and "sfx" not in only:
             continue
         write_ogg(fn(), os.path.join(SOUNDS, name + ".ogg"), 5)
-    sounds = {}
-    for name in MUSIC:
-        sounds["music." + name] = {"category": "music", "sounds": [{"name": "konocraft:music/" + name, "stream": True}]}
+    path = os.path.join(ROOT, "src/main/resources/assets/konocraft/sounds.json")
+    sounds = {k: v for k, v in json.load(open(path)).items() if k.startswith("music.")} if os.path.exists(path) else {}
     for ev, file in EVENTS.items():
         sounds[ev] = {"sounds": ["konocraft:" + file], "subtitle": "subtitles.konocraft." + ev}
-    with open(os.path.join(ROOT, "src/main/resources/assets/konocraft/sounds.json"), "w") as fh:
-        json.dump(sounds, fh, indent=2)
+    with open(path, "w") as fh:
+        json.dump(sounds, fh, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":

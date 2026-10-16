@@ -3,7 +3,15 @@
     "category": "music",
     "sounds": [
       {
-        "name": "konocraft:music/axel",
+        "name": "konocraft:music/minstrel_guild",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/thatched_villagers",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/pippin_the_hunchback",
         "stream": true
       }
     ]
@@ -12,7 +20,15 @@
     "category": "music",
     "sounds": [
       {
-        "name": "konocraft:music/fields",
+        "name": "konocraft:music/celtic_impulse",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/lord_of_the_land",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/achaidh_cheide",
         "stream": true
       }
     ]
@@ -21,7 +37,11 @@
     "category": "music",
     "sounds": [
       {
-        "name": "konocraft:music/castle",
+        "name": "konocraft:music/gathering_darkness",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/darkling",
         "stream": true
       }
     ]
@@ -30,7 +50,11 @@
     "category": "music",
     "sounds": [
       {
-        "name": "konocraft:music/afterlife",
+        "name": "konocraft:music/dreamy_flashback",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/heartwarming",
         "stream": true
       }
     ]
@@ -39,7 +63,11 @@
     "category": "music",
     "sounds": [
       {
-        "name": "konocraft:music/battle",
+        "name": "konocraft:music/heroic_age",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/five_armies",
         "stream": true
       }
     ]
@@ -48,7 +76,11 @@
     "category": "music",
     "sounds": [
       {
-        "name": "konocraft:music/boss",
+        "name": "konocraft:music/volatile_reaction",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/rynos_theme",
         "stream": true
       }
     ]
@@ -57,7 +89,11 @@
     "category": "music",
     "sounds": [
       {
-        "name": "konocraft:music/destroyer",
+        "name": "konocraft:music/crossing_the_chasm",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/five_armies",
         "stream": true
       }
     ]
@@ -66,7 +102,15 @@
     "category": "music",
     "sounds": [
       {
-        "name": "konocraft:music/ending",
+        "name": "konocraft:music/fluffing_a_duck",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/monkeys_spinning_monkeys",
+        "stream": true
+      },
+      {
+        "name": "konocraft:music/carefree",
         "stream": true
       }
     ]

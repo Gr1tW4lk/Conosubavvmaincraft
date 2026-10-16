@@ -20,4 +20,21 @@
 | Горожанин (трактирщик) | [Innkeeper](https://namemc.com/profile/Innkeeper) |
 | Горожанин (торговец) | [Merchant](https://namemc.com/profile/Merchant) |
 
-Остальные скины (Луна, Юнъюн, Бельдия, монстры) и все модели, текстуры, звуки — сделаны для мода с нуля.
+Остальные скины (Луна, Юнъюн, Бельдия, монстры), все модели, текстуры и звуковые эффекты сделаны для мода с нуля.
+
+## Музыка
+
+Вся музыка — Kevin MacLeod ([incompetech.com](https://incompetech.com)), лицензия [Creative Commons: By Attribution 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+| Где звучит | Треки |
+|---|---|
+| Аксель | «Minstrel Guild», «Thatched Villagers», «Pippin the Hunchback» |
+| Поля и окрестности | «Celtic Impulse», «Lord of the Land», «Achaidh Cheide» |
+| Замок Бельдии | «Gathering Darkness», «Darkling» |
+| Загробный мир | «Dreamy Flashback», «Heartwarming» |
+| Сражения | «Heroic Age», «Five Armies» |
+| Босс (Бельдия) | «Volatile Reaction», «Rynos Theme» |
+| Разрушитель | «Crossing the Chasm», «Five Armies» |
+| Финал | «Fluffing a Duck», «Monkeys Spinning Monkeys», «Carefree» |
+
+"Title" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0 License. http://creativecommons.org/licenses/by/4.0/
