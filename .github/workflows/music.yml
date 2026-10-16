@@ -40,6 +40,6 @@ jobs:
         run: |
           cd music_out && zip -qr ../music.zip . && cd ..
           gh release delete music-candidates -y --cleanup-tag || true
-          gh release create music-candidates --prerelease --target "$GITHUB_SHA" \
+          gh release create music-candidates --prerelease \
             --title "Music candidates" --notes "Royalty-free music (Kevin MacLeod, CC BY 4.0) for the mod (служебный релиз)." \
             music.zip music_out/report.txt

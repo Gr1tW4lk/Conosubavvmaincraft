@@ -103,7 +103,7 @@ jobs:
         run: |
           TAG="dev-${GITHUB_REF_NAME//\//-}"
           gh release delete "$TAG" -y --cleanup-tag || true
-          gh release create "$TAG" --prerelease --target "$GITHUB_SHA" \
+          gh release create "$TAG" --prerelease \
             --title "Dev build ($GITHUB_REF_NAME @ ${GITHUB_SHA::7})" \
             --notes "Автоматическая сборка для проверки. Скачивайте стабильные версии из релизов без пометки Pre-release." \
             ci-results.zip ci-results/summary.txt $(ls ci-results/*.jar 2>/dev/null)
