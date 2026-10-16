@@ -312,7 +312,10 @@ public class DestroyerEntity extends PathAwareEntity implements BossEntity {
 		}
 		// Attacks
 		List<ServerPlayerEntity> near = w.getPlayers(p -> p.squaredDistanceTo(this) < 60 * 60 && !p.isCreative() && !p.isSpectator());
-		if (near.isEmpty()) {
+		// The fight only resets when everyone has left the southern plain, not while the defenders
+		// are still waiting at the barricades for the fortress to arrive.
+		boolean watched = !w.getPlayers(p -> p.squaredDistanceTo(this) < 380 * 380 && !p.isSpectator()).isEmpty();
+		if (!watched) {
 			if (++lonelyTicks > 20 * 45) {
 				Bosses.onDestroyerFail(getServer());
 				return;
