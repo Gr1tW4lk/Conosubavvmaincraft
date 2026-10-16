@@ -166,6 +166,7 @@ public final class Actions {
 				d.prologueDone = true;
 				state.markDirty();
 				Story.setRespawn(player);
+				Story.syncObjective(player);
 			}
 			case "join" -> Party.join(player, arg);
 			case "leave" -> Party.leave(player.getServer(), arg);

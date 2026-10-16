@@ -213,7 +213,11 @@ public final class DialogueManager {
 		s.ended = true;
 		if (sessions.get(s.player.getUuid()) == s) sessions.remove(s.player.getUuid());
 		String next = s.chainNext;
-		if (next == null) ServerNet.sendClose(s.player);
+		if (next == null) {
+			ServerNet.sendClose(s.player);
+			// actions inside a dialogue may change the stage or the player's state in any order
+			Story.syncObjective(s.player);
+		}
 		for (Runnable r : s.onEnd) {
 			try {
 				r.run();
