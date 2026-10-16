@@ -23,7 +23,7 @@ import urllib.request
 from PIL import Image, ImageDraw
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
-DEADLINE = time.time() + 20 * 60
+DEADLINE = time.time() + 22 * 60
 DUMP_DIR = None
 
 DECOR = ["{}", "{}_", "_{}", "x{}x", "{}1", "{}2", "{}7", "{}X", "{}UwU", "{}_UwU", "{}Chan", "{}_Chan",
@@ -284,6 +284,41 @@ def web(character):
     return out
 
 
+# ---------------------------------------------------------------- MineSkin gallery
+
+MINESKIN_QUERIES = {
+    "megumin": ["megumin"], "aqua": ["aqua"], "darkness": ["darkness", "lalatina", "crusader"],
+    "kazuma": ["kazuma"], "eris": ["eris"], "wiz": ["wiz", "lich"], "vanir": ["vanir"],
+    "yunyun": ["yunyun", "yun yun"], "luna": ["luna", "receptionist", "guild"],
+    "beldia": ["beldia", "dullahan", "headless", "black knight"], "konosuba": ["konosuba"],
+    "goblin": ["goblin"], "undead_knight": ["skeleton knight", "undead knight"],
+}
+
+
+def mineskin(character):
+    out = []
+    for q in MINESKIN_QUERIES.get(character, []):
+        if out_of_time():
+            break
+        body = get("https://api.mineskin.org/v2/skins?size=64&filter=" + urllib.parse.quote(q))
+        try:
+            skins = json.loads(body).get("skins", []) if body else []
+        except Exception:
+            skins = []
+        print(f"  mineskin '{q}': {len(skins)} skins", flush=True)
+        for sk in skins[:48]:
+            if out_of_time():
+                break
+            tex = sk.get("texture")
+            if not tex:
+                continue
+            data = get("https://textures.minecraft.net/texture/" + tex, binary=True, retries=0)
+            if data and skin_size_ok(data):
+                name = re.sub(r"[^A-Za-z0-9_]+", "_", sk.get("name") or "")[:18]
+                out.append((f"mineskin-{sk.get('shortId') or sk['uuid'][:8]}-{name}", data, "https://mineskin.org/" + sk["uuid"]))
+    return out
+
+
 # ---------------------------------------------------------------- previews
 
 def to_modern(img):
@@ -387,7 +422,7 @@ def main():
                         found.append(item)
             except Exception as e:
                 print("  source failed", source.__name__, e)
-        found = found[:60]
+        found = found[:96]
         index[character] = []
         for i, (name, data, page) in enumerate(found):
             fn = f"{character}_{i:02d}.png"
