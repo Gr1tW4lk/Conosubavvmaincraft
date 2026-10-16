@@ -14,8 +14,12 @@ import net.minecraft.entity.SpawnReason;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ChunkPos;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /** Spawning, resetting and finishing the two big fights: Beldia and the Mobile Fortress Destroyer. */
@@ -27,6 +31,53 @@ public final class Bosses {
 	}
 
 	public static void init() {
+		ServerTickEvents.END_SERVER_TICK.register(Bosses::tick);
+	}
+
+	// ---------------------------------------------------------------------------------------------
+	// The Destroyer marches from far outside the simulation distance, so the chunks around it are
+	// kept loaded while it lives; otherwise it would freeze until a player walked up to it.
+
+	private static final Set<Long> forced = new HashSet<>();
+	private static int ticks;
+	private static boolean staleChecked;
+
+	private static void tick(MinecraftServer server) {
+		if (++ticks % 20 != 0) return;
+		ServerWorld world = KonoWorld.get(server);
+		if (world == null) return;
+		Entity d = destroyer != null || ticks % 200 == 0 ? find(server, "destroyer") : null;
+		if (d != null && d.isAlive()) {
+			keepLoaded(world, d.getChunkPos());
+		} else if (!forced.isEmpty() || !staleChecked && !Boolean.getBoolean("konocraft.autotest.server")) {
+			staleChecked = true;
+			releaseChunks(world);
+		}
+	}
+
+	private static void keepLoaded(ServerWorld world, ChunkPos center) {
+		Set<Long> want = new HashSet<>();
+		for (int dx = -2; dx <= 2; dx++) {
+			for (int dz = -2; dz <= 2; dz++) want.add(ChunkPos.toLong(center.x + dx, center.z + dz));
+		}
+		for (long l : forced) {
+			if (!want.contains(l)) world.setChunkForced(ChunkPos.getPackedX(l), ChunkPos.getPackedZ(l), false);
+		}
+		for (long l : want) {
+			if (!forced.contains(l)) world.setChunkForced(ChunkPos.getPackedX(l), ChunkPos.getPackedZ(l), true);
+		}
+		forced.clear();
+		forced.addAll(want);
+	}
+
+	/** Once per server start this also clears chunks left forced by a fight interrupted by a restart. */
+	private static void releaseChunks(ServerWorld world) {
+		long[] chunks = forced.isEmpty() ? world.getForcedChunks().toLongArray() : forced.stream().mapToLong(Long::longValue).toArray();
+		for (long l : chunks) {
+			int x = ChunkPos.getPackedX(l), z = ChunkPos.getPackedZ(l);
+			if (x >= -20 && x <= 20 && z >= -8 && z <= 50) world.setChunkForced(x, z, false);
+		}
+		forced.clear();
 	}
 
 	public static Entity find(MinecraftServer server, String key) {
@@ -135,6 +186,7 @@ public final class Bosses {
 		DestroyerEntity d = ModEntities.DESTROYER.create(world);
 		if (d == null) return;
 		Locations.Loc loc = Locations.DESTROYER_START;
+		keepLoaded(world, new ChunkPos(net.minecraft.util.math.BlockPos.ofFloored(loc.x(), loc.y(), loc.z())));
 		d.refreshPositionAndAngles(loc.x(), loc.y(), loc.z(), 180, 0);
 		d.setPersistent();
 		world.spawnEntity(d);

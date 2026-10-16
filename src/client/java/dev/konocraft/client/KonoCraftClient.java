@@ -2,6 +2,7 @@ package dev.konocraft.client;
 
 import dev.konocraft.client.render.KonoRenderers;
 import dev.konocraft.client.test.ClientAutotest;
+import dev.konocraft.client.test.StoryBot;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -22,5 +23,6 @@ public class KonoCraftClient implements ClientModInitializer {
 			KonoHud.tick(client);
 		});
 		ClientAutotest.register();
+		StoryBot.register();
 	}
 }

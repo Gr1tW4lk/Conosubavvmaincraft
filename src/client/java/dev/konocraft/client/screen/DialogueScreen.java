@@ -102,6 +102,25 @@ public class DialogueScreen extends Screen {
 		ClientNet.advance(-1);
 	}
 
+	/** One "click" of the CI story playthrough: reveal the line, then pick a choice or move on. */
+	public void autotestStep(int choice) {
+		if (waitingServer || auto > 0) return;
+		if (!fullyShown()) {
+			revealed = fullText.length();
+			return;
+		}
+		if (choices != null && !choices.isEmpty()) {
+			choose(Math.floorMod(choice, choices.size()));
+			return;
+		}
+		advance();
+	}
+
+	public String autotestLine() {
+		return (speakerName == null || speakerName.isEmpty() ? "*" : speakerName) + ": " + fullText
+			+ (choices == null || choices.isEmpty() ? "" : " " + choices);
+	}
+
 	@Override
 	public void tick() {
 		age++;

@@ -22,7 +22,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -69,17 +69,30 @@ jobs:
           timeout 1200 xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runAutotestClient --no-daemon 2>&1 | tee client-test.log || true
           ls -la run/screenshots || true
 
+      - name: Story playthrough (bot plays the whole campaign)
+        if: always() && steps.servertest.outcome != 'skipped'
+        env:
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          MESA_GL_VERSION_OVERRIDE: "4.5"
+          ALSOFT_DRIVERS: "null"
+        run: |
+          rm -rf run/saves/story
+          if [ -d run/world ]; then cp -r run/world run/saves/story; fi
+          timeout 2400 xvfb-run -a -s "-screen 0 960x540x24" ./gradlew runAutotestStory --no-daemon 2>&1 | tee story-test.log || true
+          grep -E "\[STORY\]|\[AUTOTEST\] STORY" story-test.log | tail -60 || true
+
       - name: Collect results
         if: always()
         run: |
           mkdir -p ci-results
-          cp build.log server-test.log client-test.log ci-results/ 2>/dev/null || true
+          cp build.log server-test.log client-test.log story-test.log ci-results/ 2>/dev/null || true
           cp build/libs/*.jar ci-results/ 2>/dev/null || true
           rm -f ci-results/*-sources.jar
           cp run/screenshots/*.png ci-results/ 2>/dev/null || true
           cp run/logs/latest.log ci-results/latest.log 2>/dev/null || true
           cp -r run/crash-reports ci-results/ 2>/dev/null || true
-          grep -h -A3 -E "error:|Exception|\[AUTOTEST\]" build.log server-test.log client-test.log 2>/dev/null | head -400 > ci-results/summary.txt || true
+          grep -h -A3 -E "error:|Exception|\[AUTOTEST\]" build.log server-test.log client-test.log story-test.log 2>/dev/null | head -600 > ci-results/summary.txt || true
+          grep -h -E "\[STORY\]" story-test.log 2>/dev/null | cut -c1-400 >> ci-results/summary.txt || true
           cd ci-results && zip -qr ../ci-results.zip . && cd ..
           ls -la ci-results
 

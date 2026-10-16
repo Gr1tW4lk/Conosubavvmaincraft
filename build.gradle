@@ -41,6 +41,14 @@ loom {
 			programArgs "--quickPlaySingleplayer", "autotest", "--width", "1280", "--height", "720"
 			runDir "run"
 		}
+		// Bot that plays the whole story from the prologue to the ending (used by CI under Xvfb).
+		autotestStory {
+			client()
+			name "Autotest Story"
+			vmArg "-Dkonocraft.autotest.story=true"
+			programArgs "--quickPlaySingleplayer", "story", "--width", "960", "--height", "540"
+			runDir "run"
+		}
 	}
 }
 
