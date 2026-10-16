@@ -97,7 +97,7 @@ public abstract class KonoMonsterEntity extends HostileEntity {
 		}
 
 		@Override
-		protected float getSoundPitch() {
+		public float getSoundPitch() {
 			return 1.6f;
 		}
 

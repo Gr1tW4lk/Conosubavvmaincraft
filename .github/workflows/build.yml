@@ -71,6 +71,7 @@ jobs:
           cp run/screenshots/*.png ci-results/ 2>/dev/null || true
           cp run/logs/latest.log ci-results/latest.log 2>/dev/null || true
           cp -r run/crash-reports ci-results/ 2>/dev/null || true
+          grep -h -A3 -E "error:|Exception|\[AUTOTEST\]" build.log server-test.log client-test.log 2>/dev/null | head -400 > ci-results/summary.txt || true
           cd ci-results && zip -qr ../ci-results.zip . && cd ..
           ls -la ci-results
 
@@ -84,4 +85,4 @@ jobs:
           gh release create "$TAG" --prerelease --target "$GITHUB_SHA" \
             --title "Dev build ($GITHUB_REF_NAME @ ${GITHUB_SHA::7})" \
             --notes "Автоматическая сборка для проверки. Скачивайте стабильные версии из релизов без пометки Pre-release." \
-            ci-results.zip ci-results/*.jar
+            ci-results.zip ci-results/summary.txt $(ls ci-results/*.jar 2>/dev/null)

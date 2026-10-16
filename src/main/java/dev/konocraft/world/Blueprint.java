@@ -117,7 +117,12 @@ public final class Blueprint {
 					};
 					state = state.with(prop, connect ? WallShape.LOW : WallShape.NONE);
 				} else {
-					BooleanProperty prop = HorizontalConnectingBlock.FACING_PROPERTIES.get(d);
+					BooleanProperty prop = switch (d) {
+						case NORTH -> HorizontalConnectingBlock.NORTH;
+						case SOUTH -> HorizontalConnectingBlock.SOUTH;
+						case EAST -> HorizontalConnectingBlock.EAST;
+						default -> HorizontalConnectingBlock.WEST;
+					};
 					state = state.with(prop, connect);
 				}
 			}

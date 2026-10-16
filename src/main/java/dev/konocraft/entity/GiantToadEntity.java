@@ -245,7 +245,7 @@ public class GiantToadEntity extends HostileEntity {
 	}
 
 	@Override
-	protected float getSoundPitch() {
+	public float getSoundPitch() {
 		return isKing() ? 0.55f : super.getSoundPitch();
 	}
 
