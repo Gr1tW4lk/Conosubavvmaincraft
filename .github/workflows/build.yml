@@ -2,6 +2,12 @@ name: build
 
 on:
   push:
+    paths-ignore:
+      - "tools/fetch_skins.py"
+      - "tools/music.txt"
+      - ".github/workflows/skins.yml"
+      - ".github/workflows/music.yml"
+      - "**.md"
   workflow_dispatch:
 
 permissions:

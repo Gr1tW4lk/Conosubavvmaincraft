@@ -26,7 +26,7 @@ jobs:
             [ -f "music_out/$slug.ogg" ] && continue
             url="https://incompetech.com/music/royalty-free/mp3-royaltyfree/$(python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1]))' "$title").mp3"
             if curl -sfL --retry 2 -A "Mozilla/5.0" -o "music_out/$slug.mp3" "$url"; then
-              ffmpeg -loglevel error -y -i "music_out/$slug.mp3" -vn -ac 2 -ar 44100 -c:a libvorbis -q:a 2 "music_out/$slug.ogg" && rm "music_out/$slug.mp3"
+              ffmpeg -nostdin -loglevel error -y -i "music_out/$slug.mp3" -vn -ac 2 -ar 44100 -c:a libvorbis -q:a 2 "music_out/$slug.ogg" && rm "music_out/$slug.mp3"
               echo "OK   $event | $title -> $slug.ogg ($(du -k music_out/$slug.ogg | cut -f1) KB)" | tee -a music_out/report.txt
             else
               echo "FAIL $event | $title ($url)" | tee -a music_out/report.txt

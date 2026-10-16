@@ -123,8 +123,8 @@ public final class AxelTown {
 					double a = k * Math.PI / 4;
 					b.set(cx + (int) Math.round(Math.cos(a) * 5), top + 3, cz + (int) Math.round(Math.sin(a) * 5), Blocks.AIR.getDefaultState());
 				}
-				b.cone(cx, top + 7, cz, 7.0, 9, Blocks.DEEPSLATE_TILES.getDefaultState());
-				b.set(cx, top + 16, cz, Blocks.LIGHTNING_ROD.getDefaultState());
+				b.cone(cx, top + 7, cz, 6.5, 10, Blocks.DARK_PRISMARINE.getDefaultState());
+				b.set(cx, top + 17, cz, Blocks.LIGHTNING_ROD.getDefaultState());
 			}
 		}
 	}
