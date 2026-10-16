@@ -114,12 +114,26 @@ public final class ServerAutotest {
 				dev.konocraft.story.TownLife.wakeUp(w, 50);
 				check(home && dev.konocraft.story.TownLife.sleeping(w) == 0, "citizens go home at night and come out in the morning");
 			}
+			// The big town: hundreds of houses and the new quarters
+			int lots = dev.konocraft.world.structure.TownPlan.lots().size();
+			check(lots > 200, "town houses: " + lots);
+			int f1 = Regions.TOWN_Y + 1;
+			check(w.getBlockState(new BlockPos(0, f1 + 3, 101)).isOf(Blocks.IRON_BLOCK), "market fountain statue");
+			check(w.getBlockState(new BlockPos(92, f1 + 3, -92)).isOf(Blocks.GOLD_BLOCK), "lord alderp's golden statue");
+			check(w.getBlockState(new BlockPos(92, f1 + 2, 17)).isOf(Blocks.BELL), "inn reception bell");
+			check(w.getBlockState(new BlockPos(88, Regions.TOWN_Y - 2, 104)).isOf(Blocks.SEA_LANTERN), "bathhouse pool");
+			check(w.getBlockState(new BlockPos(-102, Regions.TOWN_Y - 1, -30)).isOf(Blocks.WATER), "canal water");
+			check(w.getBlockState(new BlockPos(-94, f1, -24)).isOf(Blocks.LAVA_CAULDRON), "smithy forge");
+			BlockPos bedAt = new BlockPos(-88, f1 + 6, -15);
+			check(w.getBlockState(bedAt).isOf(Blocks.GRAY_BED)
+				&& w.getWorldChunk(bedAt).getBlockEntity(bedAt, net.minecraft.world.chunk.WorldChunk.CreationType.CHECK) != null, "beds get their block entity");
+			check(!dev.konocraft.story.Thief.quarter(60, -60).isEmpty(), "thief hints: " + dev.konocraft.story.Thief.quarter(60, -60));
 			int dialogues = Dialogues.all().size();
-			check(dialogues > 60, "dialogues loaded: " + dialogues);
+			check(dialogues > 80 && Dialogues.get("sena_talk") != null && Dialogues.get("guard_talk") != null, "dialogues loaded: " + dialogues);
 			// Every entity type can be created and ticked
-			double x = 6.5, z = 20.5;
+			double x = 6.5, z = 54.5;
 			// no player is online, so keep the test chunks loaded or every entity is unloaded with them
-			for (int cx = 0; cx <= 5; cx++) w.setChunkForced(cx, 1, true);
+			for (int cx = 0; cx <= 5; cx++) w.setChunkForced(cx, 3, true);
 			w.setChunkForced(0, 18, true);
 			for (EntityType<?> type : Registries.ENTITY_TYPE) {
 				if (!Registries.ENTITY_TYPE.getId(type).getNamespace().equals(KonoCraft.MOD_ID)) continue;

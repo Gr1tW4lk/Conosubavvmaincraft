@@ -21,6 +21,8 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	public static final int VARIANTS = 6;
 	public static final int KEELE_VARIANT = 6;
 	public static final int CITIZEN = 0, GUARD = 1, BUILDER = 2, KEELE = 3;
+	/** Townspeople with a job and a fixed place: they stay at their counter all day. */
+	public static final int SMITH = 4, INNKEEPER = 5, BATHKEEPER = 6, POLICE = 7, LORD = 8, NOBLE = 9, MERCHANT = 10;
 	/** What the townsfolk is walking to: their front door at night, the guild in the evening... */
 	public static final int GO_NONE = 0, GO_HOME = 1, GO_TAVERN = 2, GO_WORK = 3;
 	private static final TrackedData<Integer> VARIANT = DataTracker.registerData(TownsfolkEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -50,6 +52,7 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	}
 
 	public void walkTo(BlockPos target, int mode) {
+		far = false;
 		scheduleTarget = target;
 		scheduleMode = mode;
 		scheduleTicks = 0;
@@ -74,6 +77,26 @@ public class TownsfolkEntity extends KonoNpcEntity {
 		return scheduleTarget == null;
 	}
 
+	public boolean isWorker() {
+		return role >= SMITH;
+	}
+
+	private int farTimer;
+	private boolean far;
+
+	/**
+	 * Citizens nobody is looking at think four times slower. Nobody within 48 blocks can tell the
+	 * difference, but a town of two hundred people costs a quarter of the server time.
+	 */
+	@Override
+	public void tickMovement() {
+		if (!getWorld().isClient) {
+			if (++farTimer % 20 == 0) far = scheduleTarget == null && getWorld().getClosestPlayer(this, 48) == null;
+			if (far && farTimer % 4 != 0) return;
+		}
+		super.tickMovement();
+	}
+
 	@Override
 	protected void initDataTracker() {
 		super.initDataTracker();
@@ -84,8 +107,19 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	protected void initGoals() {
 		goalSelector.add(0, new SwimGoal(this));
 		goalSelector.add(1, new ScheduleGoal(this));
+		goalSelector.add(3, new ReturnHomeGoal(this, 1.5) {
+			@Override
+			public boolean canStart() {
+				return isWorker() && super.canStart();
+			}
+		});
 		goalSelector.add(4, new ReturnHomeGoal(this, 9));
-		goalSelector.add(5, new WanderAroundGoal(this, 0.55, 80));
+		goalSelector.add(5, new WanderAroundGoal(this, 0.55, 80) {
+			@Override
+			public boolean canStart() {
+				return !isWorker() && super.canStart();
+			}
+		});
 		goalSelector.add(6, new LookAtEntityGoal(this, PlayerEntity.class, 7f));
 		goalSelector.add(7, new LookAroundGoal(this));
 	}
@@ -122,6 +156,13 @@ public class TownsfolkEntity extends KonoNpcEntity {
 		if (role == KEELE) return "Хе-хе... Юноша, я мёртв уже триста лет. Это не больно, но обидно.";
 		if (role == GUARD) return "Нападение на стражу! Я запомнил твоё лицо, авантюрист!";
 		if (role == BUILDER) return "Эй! Я тут вообще-то ваш бардак разгребаю!";
+		if (role == SMITH) return "Осторожнее! Я держу раскалённое железо, а ты держишь мою вежливость.";
+		if (role == INNKEEPER) return "Драки — во дворе! Мебель у меня одна, а авантюристов много.";
+		if (role == BATHKEEPER) return "В бане не дерутся! Только моются. И иногда поют.";
+		if (role == POLICE) return "Нападение на должностное лицо. Записываю. Опять.";
+		if (role == LORD) return "Стража! СТРАЖА! Этот простолюдин коснулся моего камзола!";
+		if (role == NOBLE) return "Хм. Лалатина говорила, что её друзья... своеобразные.";
+		if (role == MERCHANT) return "Эй-эй! Сначала платят, потом бьют! То есть... вообще не бьют!";
 		String[] lines = {"Стража! Тут авантюрист дерётся!", "Ай! Я плачу налоги, между прочим!", "Опять эти авантюристы..."};
 		return lines[random.nextInt(lines.length)];
 	}

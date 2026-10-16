@@ -16,6 +16,7 @@ public final class Rewards {
 		EntityType<?> type = dead.getType();
 		StoryState s = StoryState.get(server);
 		WorldEvents.onKill(server, dead);
+		Thief.onKill(server, dead, killer);
 		int exp = 0;
 		long money = 0;
 		if (type == ModEntities.GIANT_TOAD) {

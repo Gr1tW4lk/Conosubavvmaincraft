@@ -11,6 +11,7 @@ public final class KonoKeys {
 	public static final KeyBinding CAST = new KeyBinding("key.konocraft.cast", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_R, "key.categories.konocraft");
 	public static final KeyBinding NEXT_SKILL = new KeyBinding("key.konocraft.next_skill", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.categories.konocraft");
 	public static final KeyBinding CARD = new KeyBinding("key.konocraft.card", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_K, "key.categories.konocraft");
+	public static final KeyBinding MAP = new KeyBinding("key.konocraft.map", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_M, "key.categories.konocraft");
 
 	private KonoKeys() {
 	}
@@ -19,6 +20,7 @@ public final class KonoKeys {
 		KeyBindingHelper.registerKeyBinding(CAST);
 		KeyBindingHelper.registerKeyBinding(NEXT_SKILL);
 		KeyBindingHelper.registerKeyBinding(CARD);
+		KeyBindingHelper.registerKeyBinding(MAP);
 	}
 
 	public static void tick(MinecraftClient mc) {
@@ -27,6 +29,9 @@ public final class KonoKeys {
 		while (NEXT_SKILL.wasPressed()) ClientNet.selectSkill(1, false);
 		while (CARD.wasPressed()) {
 			if (mc.currentScreen == null) mc.setScreen(new CardScreen());
+		}
+		while (MAP.wasPressed()) {
+			if (mc.currentScreen == null) mc.setScreen(new dev.konocraft.client.screen.MapScreen());
 		}
 	}
 }

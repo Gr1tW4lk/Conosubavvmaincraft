@@ -71,6 +71,7 @@ public final class Story {
 		TownLife.init();
 		Restoration.init();
 		WorldEvents.init();
+		Thief.init();
 		Skills.init();
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Dialogues.load();
@@ -248,6 +249,13 @@ public final class Story {
 				case dev.konocraft.entity.TownsfolkEntity.GUARD -> "guard_talk";
 				case dev.konocraft.entity.TownsfolkEntity.BUILDER -> "builder_talk";
 				case dev.konocraft.entity.TownsfolkEntity.KEELE -> "keele_meet";
+				case dev.konocraft.entity.TownsfolkEntity.SMITH -> "smith_talk";
+				case dev.konocraft.entity.TownsfolkEntity.INNKEEPER -> "inn_talk";
+				case dev.konocraft.entity.TownsfolkEntity.BATHKEEPER -> "bath_talk";
+				case dev.konocraft.entity.TownsfolkEntity.POLICE -> "sena_talk";
+				case dev.konocraft.entity.TownsfolkEntity.LORD -> "alderp_talk";
+				case dev.konocraft.entity.TownsfolkEntity.NOBLE -> "ignis_talk";
+				case dev.konocraft.entity.TownsfolkEntity.MERCHANT -> "merchant_talk";
 				default -> null;
 			};
 		}
@@ -296,7 +304,12 @@ public final class Story {
 		String text = o.text();
 		if (!d.bounty.isEmpty()) text = text + "\n" + Bounties.describe(d);
 		if (WorldEvents.active() != WorldEvents.NONE) text = text + "\n" + WorldEvents.describe();
-		ServerNet.sendObjective(player, text, o.loc() == null ? null : o.loc().vec());
+		net.minecraft.util.math.Vec3d marker = o.loc() == null ? null : o.loc().vec();
+		if (d.flags.contains("thief_active")) {
+			text = text + "\n" + Thief.describe();
+			if (Thief.hintPos() != null) marker = Thief.hintPos();
+		}
+		ServerNet.sendObjective(player, text, marker);
 	}
 
 	public static void syncObjectiveAll(MinecraftServer server) {

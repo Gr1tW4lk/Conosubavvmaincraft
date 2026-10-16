@@ -102,7 +102,7 @@ public final class ClientAutotest {
 		add(10, c -> command(c, "konocraft unstuck"));
 		add(5, c -> command(c, "gamemode spectator"));
 		shot("03_axel_plaza", tp(0.5, 68.5, 30.5, 180, 8), LOAD);
-		shot("04_axel_aerial", tp(95, 125, 110, 140, 32), LOAD + 100);
+		shot("04_axel_aerial", tp(40, 175, 215, 170, 38), LOAD + 160);
 		shot("05_guild", tp(-28.5, 67, 4.5, 180, 4), LOAD);
 		shot("06_guild_inside", tp(-15.5, 67.6, -17.5, 125, 12), LOAD);
 		shot("07_wiz_shop", tp(23.5, 67.2, -16.5, 180, 14), LOAD);
@@ -110,9 +110,9 @@ public final class ClientAutotest {
 		shot("09_stable_houses", tp(-30, 78, 75, 200, 25), LOAD);
 		shot("10_castle", tp(196, 104, -190, -135, 18), LOAD + 100);
 		shot("11_throne_room", tp(250.5, Regions.CASTLE_Y + 4, -248.5, 180, 8), LOAD);
-		shot("12_battlefield", tp(-30, ground(-30, 125) + 12, 125, -40, 15), LOAD);
-		shot("13_lake", tp(-40, 80, -150, 180, 20), LOAD);
-		shot("14_farms", tp(-160, 78, 70, 140, 20), LOAD);
+		shot("12_battlefield", tp(-30, ground(-30, 180) + 12, 180, -40, 15), LOAD);
+		shot("13_lake", tp(-40, 82, -205, 180, 20), LOAD);
+		shot("14_farms", tp(-200, 80, 75, 140, 20), LOAD);
 		// Characters lineup on the plaza
 		add(10, c -> command(c, tp(0.5, 65, 22.5, 180, 0)));
 		String[] chars = {"megumin", "aqua", "darkness", "kazuma", "eris", "luna", "wiz", "vanir", "yunyun"};
@@ -121,7 +121,7 @@ public final class ClientAutotest {
 		}
 		shot("15_characters", tp(0.5, 66.4, 23.5, 180, 4), 120);
 		// Monsters at the toad plains
-		double tx = 196, tz = 18;
+		double tx = 251, tz = 18;
 		add(10, c -> command(c, tp(tx, ground(tx, tz), tz, -90, 0)));
 		add(120, c -> {
 		});
@@ -134,17 +134,30 @@ public final class ClientAutotest {
 		summon("beldia", tx + 8, ground(tx + 8, tz - 8), tz - 8, 90);
 		shot("16_monsters", tp(tx - 1, ground(tx, tz) + 1.6, tz, -90, 6), 140);
 		// The Destroyer on the southern plain
-		double dz = 330;
+		double dz = 385;
 		summon("destroyer", 0.5, ground(0.5, dz), dz, 180);
 		summon("barrier_crystal", 9.5, ground(9.5, dz - 4), dz - 4, 0);
 		summon("destroyer_core", -4.5, ground(-4.5, dz - 18), dz - 18, 0);
 		shot("17_destroyer", tp(-30, ground(-30, dz - 48) + 8, dz - 48, -32, 4), LOAD);
 		// Explosion!
-		add(10, c -> command(c, tp(0.5, ground(0.5, 240) + 2, 240, 0, 8)));
+		add(10, c -> command(c, tp(0.5, ground(0.5, 295) + 2, 295, 0, 8)));
 		add(LOAD, c -> command(c, "konocraft fx magic_circle"));
 		add(50, c -> command(c, "konocraft fx explosion"));
 		add(8, c -> screenshot(c, "18_explosion"));
 		add(25, c -> screenshot(c, "19_explosion_after"));
+		// The new Axel: market, noble quarter, canal, park, bath, inn, streets and lanes, the map
+		shot("28_market", tp(0.5, 72, 86.5, 0, 15), LOAD);
+		shot("29_noble_quarter", tp(75, 85, -70, 180, 20), LOAD);
+		shot("30_canal", tp(-96, 70, -20, 170, 12), LOAD);
+		shot("31_park", tp(-88, 75, 60, 135, 20), LOAD);
+		shot("32_bath", tp(94.5, 68, 99.5, 0, 25), LOAD);
+		shot("33_inn", tp(105.5, 67.5, 14.5, 0, 15), LOAD);
+		shot("34_street", tp(-30.5, 66.6, 0.5, 90, 0), LOAD);
+		shot("35_lane", tp(-121, 66.6, -60.5, 0, 0), LOAD);
+		add(10, c -> command(c, tp(0.5, 66, 30.5, 180, 0)));
+		add(LOAD, c -> c.setScreen(new dev.konocraft.client.screen.MapScreen()));
+		add(100, c -> screenshot(c, "36_map"));
+		add(10, c -> c.setScreen(null));
 		// New places: the cemetery by day and on a night of the undead, Axel at night, Keele's dungeon
 		int gy = dev.konocraft.world.structure.Graveyard.floor();
 		shot("23_graveyard", tp(Regions.GRAVE_X + 26, gy + 7, Regions.GRAVE_Z + 0.5, 90, 18), LOAD);

@@ -69,7 +69,19 @@ public class KonoChunkGenerator extends ChunkGenerator {
 			if (!cur.isAir() && !cur.isReplaceable()) return;
 			sink.set(x, y, z, s);
 		});
-		bp.forEachInChunk(cp.x, cp.z, sink);
+		bp.forEachInChunk(cp.x, cp.z, (x, y, z, s) -> {
+			sink.set(x, y, z, s);
+			if (s.hasBlockEntity() && y >= bottom && y < top) {
+				// like structure pieces: the block entity (bed colour, banner, chest loot...) is created when the chunk loads
+				net.minecraft.nbt.NbtCompound nbt = bp.blockEntity(x, y, z);
+				nbt = nbt == null ? new net.minecraft.nbt.NbtCompound() : nbt.copy();
+				if (!nbt.contains("id")) nbt.putString("id", "DUMMY");
+				nbt.putInt("x", x);
+				nbt.putInt("y", y);
+				nbt.putInt("z", z);
+				chunk.addPendingBlockEntityNbt(nbt);
+			}
+		});
 		return CompletableFuture.completedFuture(chunk);
 	}
 
@@ -83,7 +95,7 @@ public class KonoChunkGenerator extends ChunkGenerator {
 		if (!Regions.inTown(x, z) || Math.abs(x) > Regions.TOWN_HALF - 8 || Math.abs(z) > Regions.TOWN_HALF - 8) return;
 		// One or two townsfolk wander the streets of most town chunks
 		double r = Terrain.rand(cp.x, cp.z, 900);
-		int count = r < 0.35 ? 0 : r < 0.85 ? 1 : 2;
+		int count = r < 0.5 ? 0 : r < 0.95 ? 1 : 2;
 		for (int i = 0; i < count; i++) {
 			int sx = cp.getStartX() + 2 + (int) (Terrain.rand(cp.x, cp.z, 901 + i) * 12);
 			int sz = cp.getStartZ() + 2 + (int) (Terrain.rand(cp.x, cp.z, 903 + i) * 12);

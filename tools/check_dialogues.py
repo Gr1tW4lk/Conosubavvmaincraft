@@ -35,6 +35,9 @@ declared = re.findall(r'"([a-z0-9_]+)"', re.search(r'FILES = \{([^}]*)\}', src).
 for f in declared:
     if f not in files:
         errors.append(f"dialogue file {f}.json missing")
+for f in files:
+    if f not in declared:
+        errors.append(f"dialogue file {f}.json is never loaded (add it to Dialogues.FILES)")
 
 dialogues = {}
 for f in glob.glob(DLG + "/*.json"):
@@ -109,7 +112,7 @@ for did, lines in dialogues.items():
                 errors.append(f"{where}: unknown dialogue {arg}")
             if cmd == "sound" and arg.split()[0] not in sounds:
                 errors.append(f"{where}: unknown sound {arg}")
-            if cmd == "shop" and arg not in ("tavern", "wiz", "smith"):
+            if cmd == "shop" and arg not in set(re.findall(r'"([a-z_]+)", new Shop\(', open(os.path.join(JAVA, "dev/konocraft/story/Shops.java"), encoding="utf-8").read())):
                 errors.append(f"{where}: unknown shop {arg}")
 
 # dialogue ids referenced from Java

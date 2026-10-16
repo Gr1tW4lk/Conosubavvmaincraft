@@ -49,7 +49,7 @@ public final class Talk {
 			case "vanir" -> s.hasFlag("met_vanir") ? "vanir_menu" : "vanir_first";
 			case "yunyun" -> s.hasFlag("met_yunyun") ? "yunyun_menu" : "yunyun_first";
 			case "beldia" -> "beldia_idle";
-			case "townsfolk" -> "town_" + (1 + player.getRandom().nextInt(14));
+			case "townsfolk" -> "town_" + (1 + player.getRandom().nextInt(20));
 			default -> null;
 		};
 	}

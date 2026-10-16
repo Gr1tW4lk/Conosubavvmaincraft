@@ -30,7 +30,15 @@ public final class Speakers {
 		Map.entry("destroyer", new Speaker("Разрушитель", 0xD08040)),
 		Map.entry("keele", new Speaker("Киль", 0xA070E0)),
 		Map.entry("guard", new Speaker("Стражник", 0xB0C4DE)),
-		Map.entry("builder", new Speaker("Строитель", 0xD2A060))
+		Map.entry("builder", new Speaker("Строитель", 0xD2A060)),
+		Map.entry("smith", new Speaker("Кузнец Брок", 0xC07040)),
+		Map.entry("innkeeper", new Speaker("Марта", 0xE0A060)),
+		Map.entry("bathkeeper", new Speaker("Юки", 0x80C8E0)),
+		Map.entry("sena", new Speaker("Сена", 0x7090D0)),
+		Map.entry("alderp", new Speaker("Лорд Алдерп", 0xE0C040)),
+		Map.entry("ignis", new Speaker("Игнис Дастинесс", 0xC0C8E8)),
+		Map.entry("merchant", new Speaker("Хенрик", 0x90C060)),
+		Map.entry("thief", new Speaker("Карманник", 0x80A040))
 	);
 
 	private Speakers() {

@@ -55,6 +55,17 @@ public final class Blueprint {
 		return blocks.get(BlockPos.asLong(x, y, z));
 	}
 
+	private final Long2ObjectOpenHashMap<net.minecraft.nbt.NbtCompound> blockEntities = new Long2ObjectOpenHashMap<>();
+
+	/** Extra block entity data (e.g. a loot table) for the block at this position. */
+	public void setBlockEntity(int x, int y, int z, net.minecraft.nbt.NbtCompound nbt) {
+		blockEntities.put(BlockPos.asLong(x, y, z), nbt);
+	}
+
+	public net.minecraft.nbt.NbtCompound blockEntity(int x, int y, int z) {
+		return blockEntities.get(BlockPos.asLong(x, y, z));
+	}
+
 	/** Every blueprint position inside the box whose block matches. */
 	public java.util.List<BlockPos> find(java.util.function.Predicate<BlockState> test, int x1, int z1, int x2, int z2) {
 		java.util.List<BlockPos> out = new java.util.ArrayList<>();
@@ -90,6 +101,14 @@ public final class Blueprint {
 		byChunk = new Long2ObjectOpenHashMap<>(lists.size());
 		for (Long2ObjectMap.Entry<LongArrayList> e : lists.long2ObjectEntrySet()) {
 			byChunk.put(e.getLongKey(), e.getValue().toLongArray());
+		}
+	}
+
+	/** Every block of every structure (used to paint the world map). */
+	public void forEachBlock(Terrain.BlockSink sink) {
+		for (Long2ObjectMap.Entry<BlockState> e : blocks.long2ObjectEntrySet()) {
+			long l = e.getLongKey();
+			sink.set(BlockPos.unpackLongX(l), BlockPos.unpackLongY(l), BlockPos.unpackLongZ(l), e.getValue());
 		}
 	}
 

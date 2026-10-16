@@ -50,6 +50,16 @@ public final class Shops {
 			new Entry(() -> Items.IRON_HELMET, 1, 10000, "Железный шлем."),
 			new Entry(() -> Items.IRON_LEGGINGS, 1, 15000, "Железные поножи."),
 			new Entry(() -> Items.IRON_BOOTS, 1, 8000, "Железные сапоги.")
+		)),
+		"market", new Shop("Лавка Хенрика", "Свежее! Всё свежее! Ну, кроме капусты. Капуста сама убежала.", List.of(
+			new Entry(() -> Items.BREAD, 4, 400, "Свежий хлеб из пекарни у фонтана."),
+			new Entry(() -> Items.APPLE, 4, 300, "Яблоки с ферм за западными воротами."),
+			new Entry(() -> Items.COOKED_BEEF, 3, 900, "Жаркое. Не жаба. Честно."),
+			new Entry(() -> Items.BAKED_POTATO, 4, 350, "Печёная картошка. Еда настоящих авантюристов."),
+			new Entry(() -> Items.PUMPKIN_PIE, 2, 700, "Тыквенный пирог. Мегумин съела три."),
+			new Entry(() -> Items.CAKE, 1, 2500, "Торт. На случай, если у вас праздник. Или плохой день."),
+			new Entry(() -> Items.TORCH, 16, 500, "Факелы для подземелий."),
+			new Entry(() -> Items.POPPY, 1, 100, "Цветок. Подарите кому-нибудь. Только не Аксис-культистам.")
 		))
 	);
 

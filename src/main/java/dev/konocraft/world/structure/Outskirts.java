@@ -73,7 +73,7 @@ public final class Outskirts {
 		catapult(b, -38, z0 - 6);
 		catapult(b, 38, z0 - 6);
 		// The trampled path the Destroyer left behind on earlier rampages
-		for (int z = 300; z <= Regions.FIELD_Z2; z++) {
+		for (int z = 355; z <= Regions.FIELD_Z2; z++) {
 			for (int x = -12; x <= 12; x++) {
 				if (Math.abs(x) > 9 && Terrain.rand(x, z, 501) < 0.6) continue;
 				int y = h(x, z);
@@ -118,7 +118,7 @@ public final class Outskirts {
 		int y = Regions.TOWN_Y;
 		for (int px = Regions.FARM_X1 + 4; px <= Regions.FARM_X2 - 14; px += 14) {
 			for (int pz = Regions.FARM_Z1 + 4; pz <= Regions.FARM_Z2 - 14; pz += 14) {
-				if (px <= -200 && px >= -214 && pz <= -20) continue; // farmhouse plot
+				if (px <= -260 && px >= -274 && pz <= -20) continue; // farmhouse plot
 				double r = Terrain.rand(px, pz, 601);
 				Block crop = r < 0.45 ? Blocks.POTATOES : r < 0.75 ? Blocks.BEETROOTS : Blocks.CARROTS;
 				int maxAge = crop == Blocks.BEETROOTS ? 3 : 7;
@@ -150,19 +150,19 @@ public final class Outskirts {
 			}
 		}
 		// Farmhouse
-		int x1 = -214, z1 = -36, x2 = -202, z2 = -26;
+		int x1 = -274, z1 = -36, x2 = -262, z2 = -26;
 		b.fill(x1, y, z1, x2, y, z2, Blocks.COBBLESTONE);
 		b.clear(x1 + 1, y + 1, z1 + 1, x2 - 1, y + 9, z2 - 1);
 		AxelTown.timberWalls(b, x1, y + 1, z1, x2, y + 4, z2, Blocks.SPRUCE_LOG.getDefaultState(), Blocks.SPRUCE_PLANKS.getDefaultState());
 		AxelTown.windows(b, x1, z1, x2, z2, y + 2, 2, Blocks.GLASS_PANE.getDefaultState());
 		b.gableRoof(x1, z1, x2, z2, y + 5, Blocks.ACACIA_STAIRS, Build.slab(Blocks.ACACIA_SLAB, false), Blocks.SPRUCE_PLANKS.getDefaultState(), true);
-		b.clear(-208, y + 1, z2, -208, y + 2, z2);
-		b.door(-208, y + 1, z2, Blocks.SPRUCE_DOOR, Direction.NORTH, false);
-		b.set(-212, y + 1, -34, Blocks.CRAFTING_TABLE.getDefaultState());
-		b.set(-204, y + 1, -34, Blocks.COMPOSTER.getDefaultState());
-		b.set(-210, y + 1, -28, Blocks.HAY_BLOCK.getDefaultState());
+		b.clear(-268, y + 1, z2, -268, y + 2, z2);
+		b.door(-268, y + 1, z2, Blocks.SPRUCE_DOOR, Direction.NORTH, false);
+		b.set(-272, y + 1, -34, Blocks.CRAFTING_TABLE.getDefaultState());
+		b.set(-264, y + 1, -34, Blocks.COMPOSTER.getDefaultState());
+		b.set(-270, y + 1, -28, Blocks.HAY_BLOCK.getDefaultState());
 		// Windmill
-		int wx = -160, wz = 48, wy = h(wx, wz);
+		int wx = -220, wz = 48, wy = h(wx, wz);
 		b.cylinder(wx, wy - 2, wy + 12, wz, 3.6, Blocks.STONE_BRICKS.getDefaultState(), true);
 		b.cylinder(wx, wy + 1, wy + 11, wz, 2.4, Build.AIR, false);
 		b.cone(wx, wy + 13, wz, 4.5, 5, Blocks.SPRUCE_PLANKS.getDefaultState());
@@ -183,7 +183,7 @@ public final class Outskirts {
 		}
 		// Fence around the fields
 		for (int x = Regions.FARM_X1; x <= Regions.FARM_X2; x++) {
-			if (Math.abs(x + 160) < 3) continue;
+			if (Math.abs(x + 220) < 3) continue;
 			b.set(x, y + 1, Regions.FARM_Z2 + 2, Blocks.OAK_FENCE.getDefaultState());
 		}
 	}
@@ -227,7 +227,7 @@ public final class Outskirts {
 	// ------------------------------------------------------------------------------------------
 	/** Hunters' camp on the toad plains. */
 	private static void toadCamp(Build b) {
-		int x = 150, z = 12;
+		int x = 205, z = 12;
 		tent(b, x, z - 6, Blocks.GREEN_WOOL);
 		int y = h(x + 5, z) + 1;
 		b.set(x + 5, y, z, Blocks.CAMPFIRE.getDefaultState().with(CampfireBlock.LIT, true));

@@ -26,18 +26,10 @@ public final class AxelTown {
 	static final int F = Regions.TOWN_Y + 1;  // first walkable layer
 	static final int H = Regions.TOWN_HALF;   // outer wall coordinate
 
-	/** Areas reserved for landmark buildings: x1, z1, x2, z2. */
-	static final int[][] RESERVED = {
-		{-46, -42, -10, -12},  // guild (+margin)
-		{12, -34, 34, -12},    // Wiz's shop
-		{14, 10, 42, 48},      // church of Eris (+tower)
-		{-32, 28, -14, 46},    // Axis church
-		{-68, 44, -44, 66},    // stable
-		{34, -72, 70, -40},    // mansion
-	};
-
 	public static void build(Build b) {
+		AxelQuarters.canal(b);
 		ground(b);
+		AxelQuarters.park(b);
 		walls(b);
 		plaza(b);
 		guild(b);
@@ -46,8 +38,21 @@ public final class AxelTown {
 		axisChurch(b);
 		stable(b);
 		mansion(b);
-		houses(b);
+		AxelNobles.build(b);
+		AxelQuarters.build(b);
+		TownHouses.buildAll(b);
+		yards(b);
 		lamps(b);
+	}
+
+	/** Chest (or barrel) contents rolled from a loot table when the chunk is generated. */
+	static void loot(Build b, int x, int y, int z, String table) {
+		net.minecraft.nbt.NbtCompound nbt = new net.minecraft.nbt.NbtCompound();
+		BlockState s = b.get(x, y, z);
+		nbt.putString("id", s != null && s.isOf(Blocks.BARREL) ? "minecraft:barrel" : "minecraft:chest");
+		nbt.putString("LootTable", table);
+		nbt.putLong("LootTableSeed", Terrain.hash(x, z, y));
+		b.blockEntity(x, y, z, nbt);
 	}
 
 	// ------------------------------------------------------------------------------------------
@@ -60,14 +65,32 @@ public final class AxelTown {
 		return Blocks.MOSSY_STONE_BRICKS.getDefaultState();
 	}
 
-	static boolean street(int x, int z) {
-		return Math.abs(x) <= 3 || Math.abs(z) <= 3;
+	/** Paving by the rank of the street: stone avenues, a patterned boulevard, cobbled side streets, gravel lanes. */
+	static BlockState paving(int x, int z, char kind, TownPlan.Rect r) {
+		double rr = Terrain.rand(x, z, 202);
+		return switch (kind) {
+			case 'R' -> {
+				boolean border = r.alongX() ? (z == r.z1() || z == r.z2()) : (x == r.x1() || x == r.x2());
+				if (border) yield Blocks.POLISHED_ANDESITE.getDefaultState();
+				yield Math.floorMod(x + z, 2) == 0 ? Blocks.STONE_BRICKS.getDefaultState()
+					: rr < 0.7 ? Blocks.ANDESITE.getDefaultState() : Blocks.CRACKED_STONE_BRICKS.getDefaultState();
+			}
+			case 'I' -> rr < 0.5 ? Blocks.COBBLESTONE.getDefaultState() : rr < 0.75 ? Blocks.ANDESITE.getDefaultState()
+				: rr < 0.9 ? Blocks.STONE_BRICKS.getDefaultState() : Blocks.MOSSY_COBBLESTONE.getDefaultState();
+			case 'L' -> rr < 0.45 ? Blocks.GRAVEL.getDefaultState() : rr < 0.7 ? Blocks.COARSE_DIRT.getDefaultState()
+				: rr < 0.9 ? Blocks.COBBLESTONE.getDefaultState() : Blocks.DIRT_PATH.getDefaultState();
+			default -> cobbleStreet(x, z);
+		};
 	}
 
 	private static void ground(Build b) {
 		for (int x = -H + 3; x <= H - 3; x++) {
 			for (int z = -H + 3; z <= H - 3; z++) {
-				if (street(x, z) || x * x + z * z <= 15 * 15) {
+				byte c = TownPlan.cell(x, z);
+				if (c == TownPlan.STREET) {
+					TownPlan.Rect r = TownPlan.streetAt(x, z);
+					b.set(x, G, z, paving(x, z, r == null ? 'A' : r.kind(), r));
+				} else if (c == TownPlan.PLAZA && x * x + z * z <= 15 * 15) {
 					b.set(x, G, z, cobbleStreet(x, z));
 				}
 			}
@@ -125,6 +148,22 @@ public final class AxelTown {
 				}
 				b.cone(cx, top + 7, cz, 6.5, 10, Blocks.DARK_PRISMARINE.getDefaultState());
 				b.set(cx, top + 17, cz, Blocks.LIGHTNING_ROD.getDefaultState());
+			}
+		}
+		// Smaller towers halfway between the gates and the corners
+		for (Direction side : Direction.Type.HORIZONTAL) {
+			for (int s = -1; s <= 1; s += 2) {
+				int[] c = toWorld(side, s * (H / 2), H - 1);
+				b.cylinder(c[0], G, top + 4, c[1], 4.5, Blocks.STONE_BRICKS.getDefaultState(), false);
+				b.cylinder(c[0], F, top + 3, c[1], 3.2, Build.AIR, false);
+				b.disk(c[0], top + 1, c[1], 3.2, Blocks.SPRUCE_PLANKS.getDefaultState());
+				for (int k = 0; k < 8; k++) {
+					double a = k * Math.PI / 4;
+					b.set(c[0] + (int) Math.round(Math.cos(a) * 4), top + 3, c[1] + (int) Math.round(Math.sin(a) * 4), Build.AIR);
+				}
+				b.cone(c[0], top + 5, c[1], 5.5, 8, Blocks.DARK_PRISMARINE.getDefaultState());
+				b.set(c[0], top + 13, c[1], Blocks.LIGHTNING_ROD.getDefaultState());
+				b.set(c[0], top + 4, c[1], Build.lantern(false, true));
 			}
 		}
 	}
@@ -225,7 +264,7 @@ public final class AxelTown {
 		stall(b, -9, -9, Blocks.GREEN_WOOL, Blocks.MELON, Blocks.PUMPKIN);
 	}
 
-	private static void stall(Build b, int x, int z, Block wool, Block goods1, Block goods2) {
+	static void stall(Build b, int x, int z, Block wool, Block goods1, Block goods2) {
 		for (int dx = -1; dx <= 1; dx += 2) {
 			for (int dz = -1; dz <= 1; dz += 2) {
 				b.set(x + dx, F, z + dz, Blocks.OAK_FENCE.getDefaultState());
@@ -300,7 +339,7 @@ public final class AxelTown {
 		}
 	}
 
-	private static void chandelier(Build b, int x, int yTop, int z, int drop) {
+	static void chandelier(Build b, int x, int yTop, int z, int drop) {
 		for (int i = 0; i < drop; i++) b.set(x, yTop - i, z, Blocks.CHAIN.getDefaultState());
 		b.set(x, yTop - drop, z, Build.lantern(false, true));
 	}
@@ -723,147 +762,118 @@ public final class AxelTown {
 	}
 
 	// ------------------------------------------------------------------------------------------
-	private record Style(BlockState frame, BlockState fill, Block roof, BlockState ridge, BlockState pane) {
-	}
-
-	private static final Style[] STYLES = {
-		new Style(Blocks.DARK_OAK_LOG.getDefaultState(), Blocks.CALCITE.getDefaultState(), Blocks.ACACIA_STAIRS, Build.slab(Blocks.ACACIA_SLAB, false), Blocks.GLASS_PANE.getDefaultState()),
-		new Style(Blocks.SPRUCE_LOG.getDefaultState(), Blocks.WHITE_TERRACOTTA.getDefaultState(), Blocks.MANGROVE_STAIRS, Build.slab(Blocks.MANGROVE_SLAB, false), Blocks.GLASS_PANE.getDefaultState()),
-		new Style(Blocks.STRIPPED_DARK_OAK_LOG.getDefaultState(), Blocks.SMOOTH_SANDSTONE.getDefaultState(), Blocks.BRICK_STAIRS, Build.slab(Blocks.BRICK_SLAB, false), Blocks.GLASS_PANE.getDefaultState()),
-		new Style(Blocks.DARK_OAK_LOG.getDefaultState(), Blocks.BIRCH_PLANKS.getDefaultState(), Blocks.DEEPSLATE_TILE_STAIRS, Build.slab(Blocks.DEEPSLATE_TILE_SLAB, false), Blocks.GLASS_PANE.getDefaultState()),
-		new Style(Blocks.SPRUCE_LOG.getDefaultState(), Blocks.CALCITE.getDefaultState(), Blocks.PRISMARINE_BRICK_STAIRS, Blocks.DARK_PRISMARINE.getDefaultState(), Blocks.GLASS_PANE.getDefaultState()),
-		new Style(Blocks.STRIPPED_SPRUCE_LOG.getDefaultState(), Blocks.WHITE_TERRACOTTA.getDefaultState(), Blocks.ACACIA_STAIRS, Build.slab(Blocks.ACACIA_SLAB, false), Blocks.GLASS_PANE.getDefaultState()),
-	};
-
-	static boolean reserved(int x1, int z1, int x2, int z2) {
-		for (int[] r : RESERVED) {
-			if (x1 <= r[2] && x2 >= r[0] && z1 <= r[3] && z2 >= r[1]) return true;
-		}
-		// streets, plaza and the wall walk
-		if (x1 <= 5 && x2 >= -5) return true;
-		if (z1 <= 5 && z2 >= -5) return true;
-		for (int x = x1; x <= x2; x += Math.max(1, x2 - x1)) {
-			for (int z = z1; z <= z2; z += Math.max(1, z2 - z1)) {
-				if (x * x + z * z < 19 * 19) return true;
+	/** Back yards: little trees, gardens, wells, wood piles and washing tubs between the houses. */
+	private static void yards(Build b) {
+		int lim = TownPlan.LIM;
+		for (int x = -lim; x <= lim; x++) {
+			for (int z = -lim; z <= lim; z++) {
+				if (TownPlan.cell(x, z) != TownPlan.FREE || b.has(x, F, z)) continue;
+				double r = Terrain.rand(x, z, 1601);
+				if (Math.floorMod(x, 4) == 0 && Math.floorMod(z, 4) == 0 && r < 0.22 && clearYard(b, x, z, 2)) {
+					yardTree(b, x, z);
+				} else if (r < 0.010 && clearYard(b, x, z, 2)) {
+					well(b, x, z);
+				} else if (r < 0.022 && clearYard(b, x, z, 1)) {
+					for (int dx = -1; dx <= 1; dx++)
+						for (int dz = -1; dz <= 1; dz++) {
+							b.set(x + dx, G, z + dz, Blocks.FARMLAND.getDefaultState().with(Properties.MOISTURE, 7));
+							Block crop = Terrain.rand(x, z, 1602) < 0.5 ? Blocks.CARROTS : Terrain.rand(x, z, 1603) < 0.5 ? Blocks.POTATOES : Blocks.WHEAT;
+							b.set(x + dx, F, z + dz, crop.getDefaultState().with(CropBlock.AGE, 7));
+						}
+					b.set(x, G, z, Blocks.WATER.getDefaultState());
+					b.set(x, F, z, Blocks.AIR.getDefaultState());
+				} else if (r < 0.034) {
+					BlockState s = switch ((int) (Terrain.rand(z, x, 1604) * 6)) {
+						case 0 -> Blocks.BARREL.getDefaultState();
+						case 1 -> Blocks.HAY_BLOCK.getDefaultState();
+						case 2 -> Blocks.COMPOSTER.getDefaultState();
+						case 3 -> Blocks.OAK_LOG.getDefaultState().with(Properties.AXIS, Direction.Axis.X);
+						case 4 -> Blocks.WATER_CAULDRON.getDefaultState().with(Properties.LEVEL_3, 2);
+						default -> Blocks.FLOWERING_AZALEA.getDefaultState();
+					};
+					b.set(x, F, z, s);
+				} else if (r < 0.12) {
+					double f = Terrain.rand(x, z, 1605);
+					b.set(x, F, z, (f < 0.55 ? Blocks.GRASS : f < 0.65 ? Blocks.FERN : f < 0.75 ? Blocks.DANDELION : f < 0.85 ? Blocks.POPPY
+						: f < 0.93 ? Blocks.AZURE_BLUET : Blocks.OXEYE_DAISY).getDefaultState());
+				}
 			}
 		}
-		int lim = H - 6;
-		return x1 < -lim || x2 > lim || z1 < -lim || z2 > lim;
 	}
 
-	private static void houses(Build b) {
-		List<int[]> lots = new ArrayList<>();
-		for (int lx = -lotStart(); lx <= H; lx += 14) {
-			for (int lz = -lotStart(); lz <= H; lz += 14) {
-				int w = 8 + (int) (Terrain.rand(lx, lz, 301) * 4);
-				int d = 7 + (int) (Terrain.rand(lx, lz, 302) * 4);
-				int x1 = lx + (int) (Terrain.rand(lx, lz, 303) * (12 - w));
-				int z1 = lz + (int) (Terrain.rand(lx, lz, 304) * (12 - d));
-				int x2 = x1 + w, z2 = z1 + d;
-				if (reserved(x1 - 1, z1 - 1, x2 + 1, z2 + 1)) continue;
-				lots.add(new int[]{x1, z1, x2, z2, lx, lz});
+	private static boolean clearYard(Build b, int x, int z, int r) {
+		for (int dx = -r; dx <= r; dx++)
+			for (int dz = -r; dz <= r; dz++) {
+				if (TownPlan.cell(x + dx, z + dz) != TownPlan.FREE) return false;
+				if (b.has(x + dx, F, z + dz) || b.has(x + dx, G, z + dz)) return false;
 			}
-		}
-		for (int[] lot : lots) house(b, lot[0], lot[1], lot[2], lot[3], lot[4], lot[5]);
+		return true;
 	}
 
-	private static int lotStart() {
-		return 70;
+	private static void yardTree(Build b, int x, int z) {
+		double r = Terrain.rand(x, z, 1610);
+		Block log = r < 0.45 ? Blocks.OAK_LOG : r < 0.7 ? Blocks.BIRCH_LOG : r < 0.85 ? Blocks.CHERRY_LOG : Blocks.SPRUCE_LOG;
+		Block leaves = r < 0.45 ? Blocks.OAK_LEAVES : r < 0.7 ? Blocks.BIRCH_LEAVES : r < 0.85 ? Blocks.CHERRY_LEAVES : Blocks.SPRUCE_LEAVES;
+		BlockState l = leaves.getDefaultState().with(Properties.PERSISTENT, true);
+		int h = 3 + (int) (Terrain.rand(z, x, 1611) * 2);
+		for (int y = F; y < F + h; y++) b.set(x, y, z, log.getDefaultState());
+		for (int dx = -2; dx <= 2; dx++)
+			for (int dz = -2; dz <= 2; dz++)
+				for (int dy = 0; dy <= 2; dy++) {
+					int d = Math.abs(dx) + Math.abs(dz) + dy;
+					if (d > 3 || (Math.abs(dx) == 2 && Math.abs(dz) == 2)) continue;
+					if (dx == 0 && dz == 0 && dy < 1) continue;
+					b.setIfEmpty(x + dx, F + h - 1 + dy, z + dz, l);
+				}
+		b.set(x, G, z, Blocks.DIRT.getDefaultState());
 	}
 
-	private static void house(Build b, int x1, int z1, int x2, int z2, int seedX, int seedZ) {
-		Style st = STYLES[(int) (Terrain.rand(seedX, seedZ, 310) * STYLES.length)];
-		boolean twoFloors = Terrain.rand(seedX, seedZ, 311) < 0.45;
-		int top = twoFloors ? F + 7 : F + 3;
-		b.fill(x1, G, z1, x2, G, z2, Blocks.COBBLESTONE);
-		b.clear(x1 + 1, F, z1 + 1, x2 - 1, top + 8, z2 - 1);
-		b.wallsMix(x1, F, z1, x2, F, z2, Blocks.COBBLESTONE.getDefaultState(), Blocks.MOSSY_COBBLESTONE.getDefaultState());
-		timberWalls(b, x1, F + 1, z1, x2, top, z2, st.frame(), st.fill());
-		if (twoFloors) {
-			b.fill(x1 + 1, F + 4, z1 + 1, x2 - 1, F + 4, z2 - 1, Blocks.SPRUCE_PLANKS);
-			for (int x = x1; x <= x2; x++) {
-				b.set(x, F + 4, z1, st.frame().contains(Properties.AXIS) ? st.frame().with(Properties.AXIS, Direction.Axis.X) : st.frame());
-				b.set(x, F + 4, z2, st.frame().contains(Properties.AXIS) ? st.frame().with(Properties.AXIS, Direction.Axis.X) : st.frame());
+	private static void well(Build b, int x, int z) {
+		for (int dx = -1; dx <= 1; dx++)
+			for (int dz = -1; dz <= 1; dz++) {
+				boolean c = dx == 0 && dz == 0;
+				b.set(x + dx, G, z + dz, c ? Blocks.WATER.getDefaultState() : Blocks.COBBLESTONE.getDefaultState());
+				if (!c) b.set(x + dx, F, z + dz, Blocks.COBBLESTONE_WALL.getDefaultState());
 			}
-			windows(b, x1, z1, x2, z2, F + 5, 2, st.pane());
+		for (int y = G - 4; y < G; y++) b.set(x, y, z, Blocks.WATER.getDefaultState());
+		for (int[] p : new int[][]{{-1, -1}, {1, 1}}) {
+			b.set(x + p[0], F + 1, z + p[1], Blocks.OAK_FENCE.getDefaultState());
+			b.set(x + p[0], F + 2, z + p[1], Blocks.OAK_FENCE.getDefaultState());
 		}
-		windows(b, x1, z1, x2, z2, F + 1, 2, st.pane());
-		boolean alongX = (x2 - x1) >= (z2 - z1);
-		b.gableRoof(x1, z1, x2, z2, top + 1, st.roof(), st.ridge(), st.fill(), alongX);
-		for (int x = x1 + 1; x < x2; x++)
-			for (int z = z1 + 1; z < z2; z++)
-				b.set(x, G, z, Blocks.OAK_PLANKS.getDefaultState());
-		// Door facing the closest main street
-		int cx = (x1 + x2) / 2, cz = (z1 + z2) / 2;
-		Direction face;
-		if (Math.abs(cx) < Math.abs(cz)) face = cx > 0 ? Direction.WEST : Direction.EAST;
-		else face = cz > 0 ? Direction.NORTH : Direction.SOUTH;
-		int dx, dz;
-		switch (face) {
-			case WEST -> { dx = x1; dz = cz; }
-			case EAST -> { dx = x2; dz = cz; }
-			case NORTH -> { dx = cx; dz = z1; }
-			default -> { dx = cx; dz = z2; }
-		}
-		b.clear(dx, F, dz, dx, F + 2, dz);
-		b.door(dx, F, dz, Blocks.SPRUCE_DOOR, face.getOpposite(), false);
-		b.set(dx + face.getOffsetX(), F + 2, dz + face.getOffsetZ(), Build.lantern(false, false));
-		b.set(dx + face.getOffsetX(), F + 1, dz + face.getOffsetZ(), Blocks.SPRUCE_FENCE.getDefaultState());
-		b.set(dx + face.getOffsetX(), F, dz + face.getOffsetZ(), Blocks.SPRUCE_FENCE.getDefaultState());
-		int ox = face.rotateYClockwise().getOffsetX() * 2, oz = face.rotateYClockwise().getOffsetZ() * 2;
-		b.set(dx + face.getOffsetX() + ox, F, dz + face.getOffsetZ() + oz, Blocks.FLOWER_POT.getDefaultState());
-		b.set(dx + face.getOffsetX() - ox, F, dz + face.getOffsetZ() - oz, Blocks.BARREL.getDefaultState());
-		// Path from the door towards the street
-		for (int i = 1; i <= 4; i++) {
-			int px = dx + face.getOffsetX() * i, pz = dz + face.getOffsetZ() * i;
-			if (!b.has(px, G, pz)) b.set(px, G, pz, Blocks.DIRT_PATH.getDefaultState());
-		}
-		// Furniture
-		double r = Terrain.rand(seedX, seedZ, 320);
-		b.set(x1 + 1, F, z1 + 1, Blocks.CRAFTING_TABLE.getDefaultState());
-		b.set(x2 - 1, F, z1 + 1, Blocks.FURNACE.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.SOUTH));
-		b.set(x2 - 1, F, z2 - 1, r < 0.5 ? Blocks.BOOKSHELF.getDefaultState() : Blocks.BARREL.getDefaultState());
-		b.set(x1 + 1, F, z2 - 1, Blocks.POTTED_POPPY.getDefaultState());
-		int tx = cx, tz = cz;
-		if (tx == dx && tz == dz) tx += 1;
-		b.set(tx, F, tz, Blocks.OAK_FENCE.getDefaultState());
-		b.set(tx, F + 1, tz, Blocks.WHITE_CARPET.getDefaultState());
-		b.set(tx + 1, F, tz, Build.stairs(Blocks.OAK_STAIRS, Direction.EAST));
-		b.set(tx - 1, F, tz, Build.stairs(Blocks.OAK_STAIRS, Direction.WEST));
-		b.set(cx, top, cz, Build.lantern(false, true));
-		if (twoFloors) {
-			b.set(x1 + 1, F + 5, z1 + 1, Blocks.RED_WOOL.getDefaultState());
-			b.set(x1 + 2, F + 5, z1 + 1, Blocks.RED_CARPET.getDefaultState());
-			b.set(x2 - 1, F + 5, z2 - 1, Blocks.BOOKSHELF.getDefaultState());
-			// ladder hole
-			b.set(x2 - 1, F + 4, z1 + 2, Build.AIR);
-			for (int y = F; y <= F + 4; y++)
-				b.set(x2 - 1, y, z1 + 2, Blocks.LADDER.getDefaultState().with(HorizontalFacingBlock.FACING, Direction.WEST));
-		}
-		// Chimney on some houses
-		if (r > 0.6) {
-			int chx = x1 + 1, chz = z1 + 1;
-			for (int y = F; y <= top + 7; y++) b.set(chx, y, chz, Blocks.BRICKS.getDefaultState());
-			b.set(chx, F, chz, Blocks.CAMPFIRE.getDefaultState().with(CampfireBlock.LIT, false));
-		}
-		// Small garden in front
-		if (r < 0.4) {
-			int gx = dx + face.getOffsetX() * 2 + face.rotateYCounterclockwise().getOffsetX() * 3;
-			int gz = dz + face.getOffsetZ() * 2 + face.rotateYCounterclockwise().getOffsetZ() * 3;
-			b.set(gx, G, gz, Blocks.FARMLAND.getDefaultState().with(Properties.MOISTURE, 7));
-			b.set(gx, F, gz, Blocks.CARROTS.getDefaultState().with(CropBlock.AGE, 7));
-			b.set(gx + 1, G, gz, Blocks.WATER.getDefaultState());
-		}
+		b.fill(x - 1, F + 3, z - 1, x + 1, F + 3, z + 1, Build.slab(Blocks.SPRUCE_SLAB, false));
+		b.set(x, F + 2, z, Blocks.CHAIN.getDefaultState());
 	}
 
 	// ------------------------------------------------------------------------------------------
+	/** Street lamps along every avenue, the boulevard and side street, never in front of a door. */
 	private static void lamps(Build b) {
-		for (int i = -66; i <= 66; i += 11) {
-			if (Math.abs(i) < 16) continue;
-			post(b, 4, i);
-			post(b, -4, i);
-			post(b, i, 4);
-			post(b, i, -4);
+		for (TownPlan.Rect r : TownPlan.STREETS) {
+			if (r.kind() == 'L') continue;
+			boolean ax = r.alongX();
+			int a0 = ax ? r.x1() : r.z1(), a1 = ax ? r.x2() : r.z2();
+			int step = r.kind() == 'A' ? 10 : 13;
+			for (int side = 0; side < 2; side++) {
+				for (int a = a0 + 4 + side * step / 2; a <= a1 - 2; a += step) {
+					int ex, ez, ox, oz;
+					if (ax) {
+						ex = a;
+						ez = side == 0 ? r.z1() : r.z2();
+						ox = a;
+						oz = side == 0 ? ez - 1 : ez + 1;
+					} else {
+						ez = a;
+						ex = side == 0 ? r.x1() : r.x2();
+						oz = a;
+						ox = side == 0 ? ex - 1 : ex + 1;
+					}
+					if (ex * ex + ez * ez < 20 * 20) continue;
+					byte outside = TownPlan.cell(ox, oz);
+					if (outside == TownPlan.STREET || outside == TownPlan.PLAZA) continue;
+					if (doorNear(b, ox, oz) || TownPlan.streetAt(ex, ez) != r) continue;
+					if (r.kind() == 'A' || r.kind() == 'R') ironLamp(b, ex, ez);
+					else post(b, ex, ez);
+				}
+			}
 		}
 		for (int k = 0; k < 12; k++) {
 			double a = k * Math.PI / 6;
@@ -871,12 +881,36 @@ public final class AxelTown {
 		}
 	}
 
+	private static boolean doorNear(Build b, int x, int z) {
+		for (int d = -1; d <= 1; d++) {
+			for (int[] o : new int[][]{{d, 0}, {0, d}}) {
+				BlockState s = b.get(x + o[0], F, z + o[1]);
+				if (s != null && s.getBlock() instanceof net.minecraft.block.DoorBlock) return true;
+			}
+		}
+		return false;
+	}
+
 	private static void post(Build b, int x, int z) {
-		BlockState cur = b.get(x, F, z);
-		if (cur != null && !cur.isAir()) return;
+		for (int y = F; y <= F + 3; y++) {
+			BlockState cur = b.get(x, y, z);
+			if (cur != null && !cur.isAir()) return;
+		}
 		b.set(x, F, z, Blocks.DARK_OAK_FENCE.getDefaultState());
 		b.set(x, F + 1, z, Blocks.DARK_OAK_FENCE.getDefaultState());
 		b.set(x, F + 2, z, Blocks.DARK_OAK_FENCE.getDefaultState());
 		b.set(x, F + 3, z, Build.lantern(false, false));
+	}
+
+	private static void ironLamp(Build b, int x, int z) {
+		for (int y = F; y <= F + 4; y++) {
+			BlockState cur = b.get(x, y, z);
+			if (cur != null && !cur.isAir()) return;
+		}
+		b.set(x, F, z, Blocks.STONE_BRICK_WALL.getDefaultState());
+		b.set(x, F + 1, z, Blocks.IRON_BARS.getDefaultState());
+		b.set(x, F + 2, z, Blocks.IRON_BARS.getDefaultState());
+		b.set(x, F + 3, z, Blocks.IRON_BARS.getDefaultState());
+		b.set(x, F + 4, z, Build.lantern(false, false));
 	}
 }

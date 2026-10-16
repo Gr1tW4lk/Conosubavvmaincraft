@@ -36,6 +36,10 @@ public final class Build {
 		return bp.get(x, y, z);
 	}
 
+	public void blockEntity(int x, int y, int z, net.minecraft.nbt.NbtCompound nbt) {
+		bp.setBlockEntity(x, y, z, nbt);
+	}
+
 	public boolean has(int x, int y, int z) {
 		return bp.has(x, y, z);
 	}

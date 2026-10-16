@@ -9,28 +9,28 @@ public final class Regions {
 	}
 
 	public static final int TOWN_Y = 64;
-	public static final int TOWN_HALF = 76;
+	public static final int TOWN_HALF = 128;
 	public static final int SEA_LEVEL = 62;
 
 	public static final int CASTLE_X = 250, CASTLE_Z = -250, CASTLE_Y = 82, CASTLE_R = 46;
-	public static final int VIEW_X = 168, VIEW_Z = -168, VIEW_Y = 74, VIEW_R = 10;
-	public static final int LAKE_X = -40, LAKE_Z = -235, LAKE_R = 52;
-	public static final int TOAD_X = 210, TOAD_Z = 20;
-	public static final int FARM_X1 = -250, FARM_X2 = -130, FARM_Z1 = -40, FARM_Z2 = 60;
-	public static final int FIELD_X = 50, FIELD_Z1 = 84, FIELD_Z2 = 560;
-	public static final int DEFENSE_Z = 150;
-	public static final int DESTROYER_START_Z = 470;
-	public static final int DESTROYER_FAIL_Z = 92;
+	public static final int VIEW_X = 188, VIEW_Z = -188, VIEW_Y = 74, VIEW_R = 10;
+	public static final int LAKE_X = -40, LAKE_Z = -290, LAKE_R = 52;
+	public static final int TOAD_X = 265, TOAD_Z = 20;
+	public static final int FARM_X1 = -315, FARM_X2 = -195, FARM_Z1 = -40, FARM_Z2 = 60;
+	public static final int FIELD_X = 50, FIELD_Z1 = 140, FIELD_Z2 = 620;
+	public static final int DEFENSE_Z = 205;
+	public static final int DESTROYER_START_Z = 525;
+	public static final int DESTROYER_FAIL_Z = 146;
 	public static final int AFTERLIFE_X = 3000, AFTERLIFE_Y = 200, AFTERLIFE_Z = 3000;
-	public static final int FOREST_X = -180, FOREST_Z = -120;
+	public static final int FOREST_X = -200, FOREST_Z = -150;
 	/** Cemetery north-west of the walls. */
-	public static final int GRAVE_X = -55, GRAVE_Z = -120;
+	public static final int GRAVE_X = -60, GRAVE_Z = -178;
 	/** Keele's Dungeon: entrance in the goblin forest, rooms far below. */
-	public static final int DUNGEON_X = -230, DUNGEON_Z = -185, DUNGEON_Y = 38;
+	public static final int DUNGEON_X = -260, DUNGEON_Z = -230, DUNGEON_Y = 38;
 
 	/** Toad ponds: x, z, radius. */
 	public static final int[][] PONDS = {
-		{185, 40, 9}, {240, -15, 7}, {255, 65, 10}, {150, -30, 6}, {300, 20, 8}
+		{240, 40, 9}, {295, -15, 7}, {310, 65, 10}, {205, -30, 6}, {355, 20, 8}
 	};
 
 	public enum Biome {

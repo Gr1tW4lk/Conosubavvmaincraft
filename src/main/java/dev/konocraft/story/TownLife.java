@@ -38,6 +38,11 @@ public final class TownLife {
 	private static final double[][] TAVERN_SPOTS = {
 		{-22.5, -21.5}, {-24.5, -26.5}, {-31.5, -24.5}, {-34.5, -28.5}, {-21.5, -29.5}, {-27.5, -22.5}, {-33.5, -21.5}
 	};
+	/** The inn by the east gate: its dining hall is the second tavern of the town. */
+	public static final BlockPos INN_DOOR = new BlockPos(101, Regions.TOWN_Y + 1, 11);
+	private static final double[][] INN_SPOTS = {
+		{101.5, 18.5}, {105.5, 22.5}, {109.5, 26.5}, {101.5, 26.5}, {105.5, 18.5}, {109.5, 22.5}
+	};
 	private static final int[][] GATES = {{0, -(HALF - 4)}, {0, HALF - 4}, {HALF - 4, 0}, {-(HALF - 4), 0}};
 	private static List<BlockPos> doors;
 	private static int tick;
@@ -54,6 +59,8 @@ public final class TownLife {
 		if (doors == null) {
 			doors = Blueprint.get().find(s -> s.getBlock() instanceof DoorBlock && !s.isOf(Blocks.IRON_DOOR)
 				&& s.get(DoorBlock.HALF) == DoubleBlockHalf.LOWER, -HALF + 2, -HALF + 2, HALF - 2, HALF - 2);
+			// front doors only: rooms upstairs in the inn are not anybody's home
+			doors.removeIf(p -> p.getY() != Regions.TOWN_Y + 1);
 		}
 		return doors;
 	}
@@ -91,20 +98,21 @@ public final class TownLife {
 			new Box(-HALF - 8, 40, -HALF - 8, HALF + 8, 140, HALF + 8), e -> e.isAlive());
 		int assigned = 0;
 		for (TownsfolkEntity f : folk) {
-			if (f.getRole() != TownsfolkEntity.CITIZEN || f.getScheduleTarget() != null || assigned >= 3) continue;
+			if (f.getRole() != TownsfolkEntity.CITIZEN || f.getScheduleTarget() != null || assigned >= 6) continue;
 			boolean tavernGoer = Math.floorMod(f.getUuid().hashCode(), 100) < 35;
 			boolean inTavern = inTavern(f);
 			if (night && (!tavernGoer || late)) {
-				BlockPos door = inTavern ? GUILD_DOOR : nearestDoor(f.getBlockPos(), 48);
+				BlockPos door = inTavern ? tavernDoor(f) : nearestDoor(f.getBlockPos(), 48);
 				if (door != null) {
 					f.walkTo(door, TownsfolkEntity.GO_HOME);
 					assigned++;
 				}
 			} else if ((evening || night) && tavernGoer && !inTavern) {
-				f.walkTo(GUILD_DOOR, TownsfolkEntity.GO_TAVERN);
+				f.walkTo(tavernDoor(f), TownsfolkEntity.GO_TAVERN);
 				assigned++;
 			}
 		}
+		workers(w, folk);
 		if (night) {
 			guards(w, folk);
 		} else {
@@ -120,7 +128,54 @@ public final class TownLife {
 	}
 
 	private static boolean inTavern(TownsfolkEntity f) {
-		return f.getX() > -46 && f.getX() < -12 && f.getZ() > -42 && f.getZ() < -14.5;
+		return f.getX() > -46 && f.getX() < -12 && f.getZ() > -42 && f.getZ() < -14.5
+			|| f.getX() > 88 && f.getX() < 116 && f.getZ() > 12 && f.getZ() < 34 && f.getY() < Regions.TOWN_Y + 4;
+	}
+
+	/** East-siders drink at the inn, everybody else at the guild. */
+	private static BlockPos tavernDoor(TownsfolkEntity f) {
+		BlockPos h = f.getOriginalHome();
+		return h.getSquaredDistance(INN_DOOR) < h.getSquaredDistance(GUILD_DOOR) ? INN_DOOR : GUILD_DOOR;
+	}
+
+	/** Townspeople with a job: they always stand at their counter (and come back if they were removed). */
+	public record Worker(int role, String loc, String name, int variant, net.minecraft.item.Item item) {
+	}
+
+	public static final Worker[] WORKERS = {
+		new Worker(TownsfolkEntity.SMITH, "smith", "Кузнец Брок", 3, Items.IRON_AXE),
+		new Worker(TownsfolkEntity.INNKEEPER, "innkeeper", "Хозяйка гостиницы Марта", 2, Items.AIR),
+		new Worker(TownsfolkEntity.BATHKEEPER, "bath_keeper", "Банщица Юки", 4, Items.AIR),
+		new Worker(TownsfolkEntity.POLICE, "sena", "Сена", 5, Items.BOOK),
+		new Worker(TownsfolkEntity.LORD, "alderp_lord", "Лорд Алдерп", 0, Items.GOLD_INGOT),
+		new Worker(TownsfolkEntity.NOBLE, "ignis", "Лорд Игнис Дастинесс", 1, Items.AIR),
+		new Worker(TownsfolkEntity.MERCHANT, "merchant", "Торговец Хенрик", 3, Items.APPLE),
+	};
+
+	private static void workers(ServerWorld w, List<TownsfolkEntity> folk) {
+		for (Worker wk : WORKERS) {
+			Locations.Loc l = Locations.get(wk.loc());
+			if (!w.isChunkLoaded((int) Math.floor(l.x()) >> 4, (int) Math.floor(l.z()) >> 4)) continue;
+			boolean present = false;
+			for (TownsfolkEntity f : folk) {
+				if (f.getRole() == wk.role()) {
+					if (present) f.discard();
+					present = true;
+				}
+			}
+			if (present) continue;
+			TownsfolkEntity e = ModEntities.TOWNSFOLK.create(w);
+			if (e == null) continue;
+			e.refreshPositionAndAngles(l.x(), l.y(), l.z(), l.yaw(), 0);
+			e.setVariant(wk.variant());
+			e.setRole(wk.role());
+			e.setHome(l.x(), l.y(), l.z(), l.yaw());
+			if (wk.item() != Items.AIR) e.equipStack(EquipmentSlot.MAINHAND, new ItemStack(wk.item()));
+			e.setCustomName(Text.literal(wk.name()));
+			e.setCustomNameVisible(true);
+			e.setPersistent();
+			w.spawnEntity(e);
+		}
 	}
 
 	private static void guards(ServerWorld w, List<TownsfolkEntity> folk) {
@@ -197,7 +252,8 @@ public final class TownLife {
 			}
 			case TownsfolkEntity.GO_TAVERN -> {
 				f.getOriginalHome();
-				double[] spot = TAVERN_SPOTS[w.random.nextInt(TAVERN_SPOTS.length)];
+				double[][] spots = INN_DOOR.equals(target) ? INN_SPOTS : TAVERN_SPOTS;
+				double[] spot = spots[w.random.nextInt(spots.length)];
 				f.requestTeleport(spot[0], Regions.TOWN_Y + 1, spot[1]);
 				f.setHome(spot[0], Regions.TOWN_Y + 1, spot[1], f.getYaw());
 			}

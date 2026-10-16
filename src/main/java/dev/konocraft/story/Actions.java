@@ -327,6 +327,7 @@ public final class Actions {
 			case "letterbox" -> ServerNet.sendFx(player, Packets.FX_LETTERBOX, Integer.parseInt(arg), 1f);
 			case "kill_mobs" -> Cutscenes.killHostilesNear(player, Double.parseDouble(arg));
 			case "keele_purify" -> WorldEvents.purifyKeele(player);
+			case "thief_start" -> Thief.start(player);
 			case "yunyun_duel" -> Activities.yunyunDuel(player, session, arg);
 			case "party_trick" -> Activities.partyTrick(player);
 			case "rate_explosion" -> Activities.rateExplosion(player, Integer.parseInt(arg));
