@@ -145,6 +145,23 @@ public final class ClientAutotest {
 		add(50, c -> command(c, "konocraft fx explosion"));
 		add(8, c -> screenshot(c, "18_explosion"));
 		add(25, c -> screenshot(c, "19_explosion_after"));
+		// New places: the cemetery by day and on a night of the undead, Axel at night, Keele's dungeon
+		int gy = dev.konocraft.world.structure.Graveyard.floor();
+		shot("23_graveyard", tp(Regions.GRAVE_X + 26, gy + 7, Regions.GRAVE_Z + 0.5, 90, 18), LOAD);
+		add(10, c -> {
+			command(c, "time set 18000");
+			command(c, "konocraft event graveyard");
+		});
+		shot("24_graveyard_night", tp(Regions.GRAVE_X + 26, gy + 7, Regions.GRAVE_Z + 0.5, 90, 18), 220);
+		shot("25_town_night", tp(0.5, 70, 40.5, 180, 8), LOAD);
+		add(5, c -> {
+			command(c, "konocraft event stop");
+			command(c, "time set 6000");
+		});
+		int[] hall = dev.konocraft.world.structure.KeeleDungeon.ROOMS[0];
+		shot("26_dungeon", tp(Regions.DUNGEON_X + 0.5, Regions.DUNGEON_Y + 2.5, hall[3] - 1.5, 180, 12), LOAD);
+		shot("27_keele", tp(dev.konocraft.world.structure.KeeleDungeon.KEELE_X + 6.5, Regions.DUNGEON_Y + 1.2,
+			dev.konocraft.world.structure.KeeleDungeon.KEELE_Z + 0.5, 90, 4), LOAD);
 		// UI
 		add(40, c -> {
 			command(c, "konocraft class adventurer");

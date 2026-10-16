@@ -1,6 +1,8 @@
 package dev.konocraft.entity;
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.ai.goal.Goal;
+import java.util.EnumSet;
 import net.minecraft.entity.ai.goal.LookAroundGoal;
 import net.minecraft.entity.ai.goal.LookAtEntityGoal;
 import net.minecraft.entity.ai.goal.SwimGoal;
@@ -15,11 +17,61 @@ import net.minecraft.world.World;
 
 /** Ordinary citizens of Axel. They wander their street and have opinions about adventurers. */
 public class TownsfolkEntity extends KonoNpcEntity {
+	/** Skins for ordinary citizens; variant 6 is Keele's. */
 	public static final int VARIANTS = 6;
+	public static final int KEELE_VARIANT = 6;
+	public static final int CITIZEN = 0, GUARD = 1, BUILDER = 2, KEELE = 3;
+	/** What the townsfolk is walking to: their front door at night, the guild in the evening... */
+	public static final int GO_NONE = 0, GO_HOME = 1, GO_TAVERN = 2, GO_WORK = 3;
 	private static final TrackedData<Integer> VARIANT = DataTracker.registerData(TownsfolkEntity.class, TrackedDataHandlerRegistry.INTEGER);
+
+	private int role = CITIZEN;
+	private BlockPos originalHome;
+	private BlockPos scheduleTarget;
+	private int scheduleMode = GO_NONE;
+	private int scheduleTicks;
 
 	public TownsfolkEntity(EntityType<? extends TownsfolkEntity> type, World world) {
 		super(type, world);
+	}
+
+	public int getRole() {
+		return role;
+	}
+
+	public void setRole(int role) {
+		this.role = role;
+	}
+
+	/** The street spot this citizen lives by, kept while they visit the tavern. */
+	public BlockPos getOriginalHome() {
+		if (originalHome == null) originalHome = home != null ? BlockPos.ofFloored(home) : getBlockPos();
+		return originalHome;
+	}
+
+	public void walkTo(BlockPos target, int mode) {
+		scheduleTarget = target;
+		scheduleMode = mode;
+		scheduleTicks = 0;
+		getNavigation().stop();
+	}
+
+	public BlockPos getScheduleTarget() {
+		return scheduleTarget;
+	}
+
+	public int getScheduleMode() {
+		return scheduleMode;
+	}
+
+	public void clearSchedule() {
+		scheduleTarget = null;
+		scheduleMode = GO_NONE;
+	}
+
+	@Override
+	public boolean staysHome() {
+		return scheduleTarget == null;
 	}
 
 	@Override
@@ -31,6 +83,7 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	@Override
 	protected void initGoals() {
 		goalSelector.add(0, new SwimGoal(this));
+		goalSelector.add(1, new ScheduleGoal(this));
 		goalSelector.add(4, new ReturnHomeGoal(this, 9));
 		goalSelector.add(5, new WanderAroundGoal(this, 0.55, 80));
 		goalSelector.add(6, new LookAtEntityGoal(this, PlayerEntity.class, 7f));
@@ -42,7 +95,7 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	}
 
 	public void setVariant(int v) {
-		dataTracker.set(VARIANT, Math.floorMod(v, VARIANTS));
+		dataTracker.set(VARIANT, Math.floorMod(v, VARIANTS + 1));
 	}
 
 	public void setHome(BlockPos pos) {
@@ -66,6 +119,9 @@ public class TownsfolkEntity extends KonoNpcEntity {
 
 	@Override
 	protected String hurtLine() {
+		if (role == KEELE) return "Хе-хе... Юноша, я мёртв уже триста лет. Это не больно, но обидно.";
+		if (role == GUARD) return "Нападение на стражу! Я запомнил твоё лицо, авантюрист!";
+		if (role == BUILDER) return "Эй! Я тут вообще-то ваш бардак разгребаю!";
 		String[] lines = {"Стража! Тут авантюрист дерётся!", "Ай! Я плачу налоги, между прочим!", "Опять эти авантюристы..."};
 		return lines[random.nextInt(lines.length)];
 	}
@@ -74,11 +130,52 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	public void writeCustomDataToNbt(NbtCompound nbt) {
 		super.writeCustomDataToNbt(nbt);
 		nbt.putInt("Variant", getVariant());
+		nbt.putInt("Role", role);
+		if (originalHome != null) nbt.putLong("OriginalHome", originalHome.asLong());
 	}
 
 	@Override
 	public void readCustomDataFromNbt(NbtCompound nbt) {
 		super.readCustomDataFromNbt(nbt);
 		setVariant(nbt.getInt("Variant"));
+		role = nbt.getInt("Role");
+		if (nbt.contains("OriginalHome")) originalHome = BlockPos.fromLong(nbt.getLong("OriginalHome"));
+	}
+
+	/** Walks to the scheduled spot; dev.konocraft.story.TownLife decides what happens on arrival. */
+	static class ScheduleGoal extends Goal {
+		private final TownsfolkEntity mob;
+
+		ScheduleGoal(TownsfolkEntity mob) {
+			this.mob = mob;
+			setControls(EnumSet.of(Control.MOVE, Control.LOOK));
+		}
+
+		@Override
+		public boolean canStart() {
+			return mob.scheduleTarget != null;
+		}
+
+		@Override
+		public boolean shouldContinue() {
+			return mob.scheduleTarget != null;
+		}
+
+		@Override
+		public void tick() {
+			BlockPos t = mob.scheduleTarget;
+			if (t == null) return;
+			mob.scheduleTicks++;
+			double d2 = mob.squaredDistanceTo(t.getX() + 0.5, t.getY(), t.getZ() + 0.5);
+			boolean close = d2 < (mob.scheduleMode == GO_WORK ? 16 : 5.5);
+			// people who cannot find a way for half a minute slip in somewhere out of sight
+			if (close || mob.scheduleTicks > 600) {
+				dev.konocraft.story.TownLife.arrive(mob);
+				return;
+			}
+			if (mob.scheduleTicks % 20 == 1 || mob.getNavigation().isIdle()) {
+				mob.getNavigation().startMovingTo(t.getX() + 0.5, t.getY(), t.getZ() + 0.5, mob.scheduleMode == GO_WORK ? 0.75 : 0.6);
+			}
+		}
 	}
 }

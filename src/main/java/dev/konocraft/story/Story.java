@@ -68,6 +68,9 @@ public final class Story {
 		Party.init();
 		CabbageEvent.init();
 		Bosses.init();
+		TownLife.init();
+		Restoration.init();
+		WorldEvents.init();
 		Skills.init();
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Dialogues.load();
@@ -240,6 +243,16 @@ public final class Story {
 			if (id != null && Dialogues.get(id) == null) id = null;
 			if (c.isFollowing()) Party.setLeader(player);
 		}
+		if (id == null && npc instanceof dev.konocraft.entity.TownsfolkEntity t) {
+			id = switch (t.getRole()) {
+				case dev.konocraft.entity.TownsfolkEntity.GUARD -> "guard_talk";
+				case dev.konocraft.entity.TownsfolkEntity.BUILDER -> "builder_talk";
+				case dev.konocraft.entity.TownsfolkEntity.KEELE -> "keele_meet";
+				default -> null;
+			};
+		}
+		if (id == null && npc.characterKey().equals("wiz") && WorldEvents.graveyardActive()
+			&& dev.konocraft.world.Regions.inGraveyard(npc.getBlockX(), npc.getBlockZ())) id = "wiz_graveyard";
 		if (id == null) id = Talk.dialogueFor(player, npc.characterKey());
 		if (id != null) DialogueManager.start(player, id);
 	}
@@ -282,6 +295,7 @@ public final class Story {
 		Objective o = d.prologueDone || s.stage == PROLOGUE ? objective(s) : new Objective("Поговорите с богиней Эрис", Locations.ERIS);
 		String text = o.text();
 		if (!d.bounty.isEmpty()) text = text + "\n" + Bounties.describe(d);
+		if (WorldEvents.active() != WorldEvents.NONE) text = text + "\n" + WorldEvents.describe();
 		ServerNet.sendObjective(player, text, o.loc() == null ? null : o.loc().vec());
 	}
 

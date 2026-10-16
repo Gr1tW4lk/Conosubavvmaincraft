@@ -46,7 +46,10 @@ public final class Bosses {
 		if (++ticks % 20 != 0) return;
 		ServerWorld world = KonoWorld.get(server);
 		if (world == null) return;
-		Entity d = destroyer != null || ticks % 200 == 0 ? find(server, "destroyer") : null;
+		// the wide search for a lost Destroyer only makes sense during its chapter
+		int stage = StoryState.get(server).stage;
+		boolean chapter = stage >= Story.CH5_DEFENSE && stage <= Story.ENDING;
+		Entity d = destroyer != null || chapter && ticks % 200 == 0 ? find(server, "destroyer") : null;
 		if (d != null && d.isAlive()) {
 			keepLoaded(world, d.getChunkPos());
 		} else if (!forced.isEmpty() || !staleChecked && !Boolean.getBoolean("konocraft.autotest.server")) {

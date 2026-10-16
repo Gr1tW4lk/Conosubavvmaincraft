@@ -28,6 +28,8 @@ public class StoryState extends PersistentState {
 	public final Map<String, Integer> affection = new HashMap<>();
 	public final Map<UUID, PlayerData> players = new HashMap<>();
 	public long nextCabbageDay = 2;
+	public long nextGraveDay = 1;
+	public long nextRaidDay = 2;
 	public boolean cabbageEventActive;
 	public int destroyerAttempts;
 
@@ -79,6 +81,8 @@ public class StoryState extends PersistentState {
 		players.forEach((uuid, data) -> pl.put(uuid.toString(), data.toNbt()));
 		nbt.put("players", pl);
 		nbt.putLong("nextCabbageDay", nextCabbageDay);
+		nbt.putLong("nextGraveDay", nextGraveDay);
+		nbt.putLong("nextRaidDay", nextRaidDay);
 		nbt.putBoolean("cabbageEvent", cabbageEventActive);
 		nbt.putInt("destroyerAttempts", destroyerAttempts);
 		return nbt;
@@ -104,6 +108,8 @@ public class StoryState extends PersistentState {
 			}
 		}
 		if (nbt.contains("nextCabbageDay")) s.nextCabbageDay = nbt.getLong("nextCabbageDay");
+		if (nbt.contains("nextGraveDay")) s.nextGraveDay = nbt.getLong("nextGraveDay");
+		if (nbt.contains("nextRaidDay")) s.nextRaidDay = nbt.getLong("nextRaidDay");
 		s.cabbageEventActive = nbt.getBoolean("cabbageEvent");
 		s.destroyerAttempts = nbt.getInt("destroyerAttempts");
 		return s;

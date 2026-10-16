@@ -78,6 +78,42 @@ public final class ServerAutotest {
 			check(w.getBlockState(new BlockPos(Regions.AFTERLIFE_X, Regions.AFTERLIFE_Y, Regions.AFTERLIFE_Z)).isOf(Blocks.SEA_LANTERN), "afterlife hall floor");
 			check(!w.getBlockState(new BlockPos(Regions.CASTLE_X - 16, Regions.CASTLE_Y + 5, Regions.CASTLE_Z - 10)).isAir(), "castle keep wall");
 			check(w.getBlockState(new BlockPos(0, Regions.TOWN_Y + 1, Regions.TOWN_HALF)).isAir(), "south gate is open");
+			// New areas: cemetery, Keele's dungeon and its owner
+			int gy = dev.konocraft.world.structure.Graveyard.floor();
+			check(w.getBlockState(new BlockPos(dev.konocraft.world.structure.Graveyard.X1 + 3, gy + 1, Regions.GRAVE_Z)).isOf(Blocks.CHISELED_DEEPSLATE)
+				|| w.getBlockState(new BlockPos(dev.konocraft.world.structure.Graveyard.X1 + 4, gy + 1, Regions.GRAVE_Z)).isOf(Blocks.CHISELED_DEEPSLATE), "graveyard crypt");
+			int kx = dev.konocraft.world.structure.KeeleDungeon.KX1, kz = dev.konocraft.world.structure.KeeleDungeon.KZ1;
+			check(w.getBlockState(new BlockPos(kx + 4, Regions.DUNGEON_Y + 1, kz + 2)).isOf(Blocks.SOUL_CAMPFIRE), "keele's chamber");
+			check(!w.getEntitiesByClass(dev.konocraft.entity.TownsfolkEntity.class, new net.minecraft.util.math.Box(BlockPos.ofFloored(Locations.KEELE.vec())).expand(6),
+				e -> e.getRole() == dev.konocraft.entity.TownsfolkEntity.KEELE).isEmpty(), "keele waits on his throne");
+			check(dev.konocraft.story.TownLife.doors().size() > 20, "house doors found: " + dev.konocraft.story.TownLife.doors().size());
+			// Restoration: blow a hole in a house and let the builders' bookkeeping put it back
+			BlockPos door = dev.konocraft.story.TownLife.doors().get(0);
+			java.util.Map<BlockPos, net.minecraft.block.BlockState> before = new java.util.HashMap<>();
+			for (BlockPos p : BlockPos.iterate(door.add(-3, -1, -3), door.add(3, 3, 3))) before.put(p.toImmutable(), w.getBlockState(p));
+			w.createExplosion(null, door.getX() + 0.5, door.getY() + 1, door.getZ() + 0.5, 2.5f, net.minecraft.world.World.ExplosionSourceType.TNT);
+			int broken = 0;
+			for (var e : before.entrySet()) if (!w.getBlockState(e.getKey()).equals(e.getValue())) broken++;
+			int remembered = dev.konocraft.story.Restoration.pending(w);
+			dev.konocraft.story.Restoration.restoreAll(w);
+			int still = 0;
+			for (var e : before.entrySet()) {
+				if (!e.getValue().hasBlockEntity() && !w.getBlockState(e.getKey()).equals(e.getValue())) still++;
+			}
+			check(broken > 0 && remembered > 0 && still <= 2, "restoration: broken " + broken + ", remembered " + remembered + ", left " + still);
+			// Town life: a citizen goes home and comes back out in the morning
+			dev.konocraft.entity.TownsfolkEntity citizen = ModEntities.TOWNSFOLK.create(w);
+			if (citizen != null) {
+				BlockPos d2 = dev.konocraft.story.TownLife.doors().get(dev.konocraft.story.TownLife.doors().size() / 2);
+				citizen.refreshPositionAndAngles(d2.getX() + 0.5, d2.getY(), d2.getZ() + 2.5, 0, 0);
+				w.spawnEntity(citizen);
+				int asleep = dev.konocraft.story.TownLife.sleeping(w);
+				citizen.walkTo(d2, dev.konocraft.entity.TownsfolkEntity.GO_HOME);
+				dev.konocraft.story.TownLife.arrive(citizen);
+				boolean home = citizen.isRemoved() && dev.konocraft.story.TownLife.sleeping(w) == asleep + 1;
+				dev.konocraft.story.TownLife.wakeUp(w, 50);
+				check(home && dev.konocraft.story.TownLife.sleeping(w) == 0, "citizens go home at night and come out in the morning");
+			}
 			int dialogues = Dialogues.all().size();
 			check(dialogues > 60, "dialogues loaded: " + dialogues);
 			// Every entity type can be created and ticked

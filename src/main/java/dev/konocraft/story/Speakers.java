@@ -27,7 +27,10 @@ public final class Speakers {
 		Map.entry("adventurer", new Speaker("Авантюрист", 0xC8B48C)),
 		Map.entry("diary", new Speaker("Дневник", 0xE0D0A0)),
 		Map.entry("toad", new Speaker("Гигантская жаба", 0x7DB24A)),
-		Map.entry("destroyer", new Speaker("Разрушитель", 0xD08040))
+		Map.entry("destroyer", new Speaker("Разрушитель", 0xD08040)),
+		Map.entry("keele", new Speaker("Киль", 0xA070E0)),
+		Map.entry("guard", new Speaker("Стражник", 0xB0C4DE)),
+		Map.entry("builder", new Speaker("Строитель", 0xD2A060))
 	);
 
 	private Speakers() {

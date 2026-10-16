@@ -76,6 +76,9 @@ public class KonoChunkGenerator extends ChunkGenerator {
 	@Override
 	public void populateEntities(ChunkRegion region) {
 		ChunkPos cp = region.getCenterPos();
+		if (cp.x == dev.konocraft.world.structure.KeeleDungeon.KEELE_X >> 4 && cp.z == dev.konocraft.world.structure.KeeleDungeon.KEELE_Z >> 4) {
+			dev.konocraft.story.WorldEvents.spawnKeele(region);
+		}
 		int x = cp.getStartX() + 8, z = cp.getStartZ() + 8;
 		if (!Regions.inTown(x, z) || Math.abs(x) > Regions.TOWN_HALF - 8 || Math.abs(z) > Regions.TOWN_HALF - 8) return;
 		// One or two townsfolk wander the streets of most town chunks

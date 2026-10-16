@@ -15,6 +15,7 @@ public final class Rewards {
 	public static void onKill(MinecraftServer server, LivingEntity dead, ServerPlayerEntity killer) {
 		EntityType<?> type = dead.getType();
 		StoryState s = StoryState.get(server);
+		WorldEvents.onKill(server, dead);
 		int exp = 0;
 		long money = 0;
 		if (type == ModEntities.GIANT_TOAD) {

@@ -228,6 +228,8 @@ public class DestroyerEntity extends PathAwareEntity implements BossEntity {
 						BlockPos p = new BlockPos(x, y, cz + dz);
 						BlockState s = y == top ? Blocks.COBBLED_DEEPSLATE_STAIRS.getDefaultState()
 							.with(net.minecraft.block.StairsBlock.FACING, side < 0 ? Direction.EAST : Direction.WEST) : Blocks.COBBLED_DEEPSLATE.getDefaultState();
+						// the ramps crumble a while after the fight
+						dev.konocraft.story.Restoration.record(w, p, w.getBlockState(p), s, 20 * 60 * 10);
 						w.setBlockState(p, s);
 					}
 				}
@@ -371,11 +373,15 @@ public class DestroyerEntity extends PathAwareEntity implements BossEntity {
 				BlockPos p = new BlockPos(x, y, z);
 				BlockState s = w.getBlockState(p);
 				if (s.isAir() || s.isOf(Blocks.BEDROCK) || s.isOf(Blocks.WATER)) continue;
+				dev.konocraft.story.Restoration.record(w, p, s, Blocks.AIR.getDefaultState(), 0);
 				w.setBlockState(p, Blocks.AIR.getDefaultState(), 3);
 				if (random.nextInt(6) == 0) w.spawnParticles(ParticleTypes.POOF, x + 0.5, y + 0.5, z + 0.5, 2, 0.2, 0.2, 0.2, 0.02);
 			}
 			BlockPos ground = new BlockPos(x, base - 1, z + 2);
-			if (w.getBlockState(ground).isOf(Blocks.GRASS_BLOCK) && random.nextInt(3) == 0) w.setBlockState(ground, Blocks.COARSE_DIRT.getDefaultState());
+			if (w.getBlockState(ground).isOf(Blocks.GRASS_BLOCK) && random.nextInt(3) == 0) {
+				dev.konocraft.story.Restoration.record(w, ground, w.getBlockState(ground), Blocks.COARSE_DIRT.getDefaultState(), 0);
+				w.setBlockState(ground, Blocks.COARSE_DIRT.getDefaultState());
+			}
 		}
 	}
 

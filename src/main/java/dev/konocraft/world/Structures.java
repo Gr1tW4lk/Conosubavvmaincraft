@@ -3,6 +3,8 @@ package dev.konocraft.world;
 import dev.konocraft.world.structure.AfterlifeHall;
 import dev.konocraft.world.structure.AxelTown;
 import dev.konocraft.world.structure.BeldiaCastle;
+import dev.konocraft.world.structure.Graveyard;
+import dev.konocraft.world.structure.KeeleDungeon;
 import dev.konocraft.world.structure.Outskirts;
 
 /** Builds every hand-made structure of the map into the blueprint. */
@@ -15,5 +17,7 @@ public final class Structures {
 		BeldiaCastle.build(b);
 		AxelTown.build(b);
 		AfterlifeHall.build(b);
+		Graveyard.build(b);
+		KeeleDungeon.build(b);
 	}
 }

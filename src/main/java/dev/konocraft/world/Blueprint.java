@@ -55,6 +55,17 @@ public final class Blueprint {
 		return blocks.get(BlockPos.asLong(x, y, z));
 	}
 
+	/** Every blueprint position inside the box whose block matches. */
+	public java.util.List<BlockPos> find(java.util.function.Predicate<BlockState> test, int x1, int z1, int x2, int z2) {
+		java.util.List<BlockPos> out = new java.util.ArrayList<>();
+		for (var e : blocks.long2ObjectEntrySet()) {
+			long l = e.getLongKey();
+			int x = BlockPos.unpackLongX(l), z = BlockPos.unpackLongZ(l);
+			if (x >= x1 && x <= x2 && z >= z1 && z <= z2 && test.test(e.getValue())) out.add(BlockPos.fromLong(l));
+		}
+		return out;
+	}
+
 	public boolean has(int x, int y, int z) {
 		return blocks.containsKey(BlockPos.asLong(x, y, z));
 	}

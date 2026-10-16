@@ -23,6 +23,10 @@ public final class Regions {
 	public static final int DESTROYER_FAIL_Z = 92;
 	public static final int AFTERLIFE_X = 3000, AFTERLIFE_Y = 200, AFTERLIFE_Z = 3000;
 	public static final int FOREST_X = -180, FOREST_Z = -120;
+	/** Cemetery north-west of the walls. */
+	public static final int GRAVE_X = -55, GRAVE_Z = -120;
+	/** Keele's Dungeon: entrance in the goblin forest, rooms far below. */
+	public static final int DUNGEON_X = -230, DUNGEON_Z = -185, DUNGEON_Y = 38;
 
 	/** Toad ponds: x, z, radius. */
 	public static final int[][] PONDS = {
@@ -64,6 +68,15 @@ public final class Regions {
 
 	public static boolean inForest(int x, int z) {
 		return x < FOREST_X && z < FOREST_Z && !inLake(x, z);
+	}
+
+	public static boolean inGraveyard(int x, int z) {
+		return Math.abs(x - GRAVE_X) <= 20 && Math.abs(z - GRAVE_Z) <= 17;
+	}
+
+	/** Below ground in the dungeon's footprint. */
+	public static boolean inDungeon(int x, int y, int z) {
+		return x >= DUNGEON_X - 50 && x <= DUNGEON_X + 10 && z >= DUNGEON_Z - 100 && z <= DUNGEON_Z && y < DUNGEON_Y + 12;
 	}
 
 	public static boolean inAfterlife(int x, int z) {

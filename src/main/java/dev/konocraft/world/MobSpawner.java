@@ -44,6 +44,10 @@ public final class MobSpawner {
 			if (p.isSpectator()) continue;
 			int px = MathHelper.floor(p.getX()), pz = MathHelper.floor(p.getZ());
 			if (Regions.inTown(px, pz) || Regions.inAfterlife(px, pz)) continue;
+			if (Regions.inDungeon(px, MathHelper.floor(p.getY()), pz)) {
+				dungeonSpawn(world, p);
+				continue;
+			}
 			int nearby = world.getEntitiesByClass(MobEntity.class, p.getBoundingBox().expand(56, 32, 56),
 				e -> e instanceof HostileEntity && !(e instanceof dev.konocraft.entity.BossEntity)).size();
 			if (nearby < CAP) trySpawn(world, p, state);
@@ -86,6 +90,24 @@ public final class MobSpawner {
 			mob.initialize(world, world.getLocalDifficulty(pos), SpawnReason.NATURAL, null, null);
 			world.spawnEntity(mob);
 		}
+	}
+
+	/** The beginner dungeon keeps its undead coming: Aqua's holy aura attracts them, she says. */
+	private static void dungeonSpawn(ServerWorld world, ServerPlayerEntity player) {
+		int nearby = world.getEntitiesByClass(MobEntity.class, player.getBoundingBox().expand(40, 12, 40), e -> e instanceof HostileEntity).size();
+		if (nearby >= 5) return;
+		var random = world.random;
+		int[] room = dev.konocraft.world.structure.KeeleDungeon.ROOMS[random.nextInt(dev.konocraft.world.structure.KeeleDungeon.ROOMS.length)];
+		int x = room[0] + random.nextInt(room[2] - room[0] + 1), z = room[1] + random.nextInt(room[3] - room[1] + 1);
+		int y = dev.konocraft.world.structure.KeeleDungeon.FLOOR;
+		if (player.squaredDistanceTo(x, y, z) < 12 * 12 || !world.isChunkLoaded(x >> 4, z >> 4)) return;
+		EntityType<? extends MobEntity> type = random.nextInt(10) < 6 ? ModEntities.UNDEAD_KNIGHT : EntityType.SKELETON;
+		MobEntity mob = type.create(world);
+		if (mob == null) return;
+		mob.refreshPositionAndAngles(x + 0.5, y, z + 0.5, random.nextFloat() * 360, 0);
+		if (!world.isSpaceEmpty(mob)) return;
+		mob.initialize(world, world.getLocalDifficulty(mob.getBlockPos()), SpawnReason.NATURAL, null, null);
+		world.spawnEntity(mob);
 	}
 
 	/** The Toad King only appears while somebody hunts it. */

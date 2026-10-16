@@ -54,6 +54,14 @@ public final class Locations {
 	public static final Loc WIZ_SHOP = add("wiz_shop", 23.5, 65, -11.5, 180, "Магазин Виз");
 	public static final Loc VANIR = add("vanir", 17.5, 65, -20.5, -90, "Магазин Виз");
 	public static final Loc CHURCH = add("church", 28.5, 65, 21.5, 0, "Церковь Эрис");
+	public static final Loc GRAVEYARD = add("graveyard", dev.konocraft.world.structure.Graveyard.X2 + 2.5,
+		dev.konocraft.world.structure.Graveyard.floor() + 1, dev.konocraft.world.Regions.GRAVE_Z + 0.5, 90, "Кладбище Акселя");
+	public static final Loc GRAVEYARD_WIZ = add("graveyard_wiz", dev.konocraft.world.Regions.GRAVE_X - 3.5,
+		dev.konocraft.world.structure.Graveyard.floor() + 1, dev.konocraft.world.Regions.GRAVE_Z + 0.5, -90, "Кладбище Акселя");
+	public static final Loc DUNGEON = add("dungeon", dev.konocraft.world.Regions.DUNGEON_X + 0.5,
+		dev.konocraft.world.structure.KeeleDungeon.surface() + 1, dev.konocraft.world.Regions.DUNGEON_Z + 4.5, 180, "Подземелье Киля");
+	public static final Loc KEELE = add("keele", dev.konocraft.world.structure.KeeleDungeon.KEELE_X + 1.5,
+		dev.konocraft.world.Regions.DUNGEON_Y, dev.konocraft.world.structure.KeeleDungeon.KEELE_Z + 0.5, -90, "Подземелье Киля");
 	public static final Loc YUNYUN = add("yunyun", 11.5, 65, 6.5, 180, "Площадь Акселя");
 	public static final Loc STABLE = add("stable", -56.5, 65, 55.5, -90, "Конюшня");
 	public static final Loc MANSION = add("mansion", 52.5, 65, -46.5, 180, "Особняк");

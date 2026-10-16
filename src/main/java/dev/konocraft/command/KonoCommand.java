@@ -104,6 +104,18 @@ public final class KonoCommand {
 						dev.konocraft.story.Shops.open(ctx.getSource().getPlayerOrThrow(), StringArgumentType.getString(ctx, "id"));
 						return 1;
 					})))
+				.then(CommandManager.literal("event").requires(src -> src.hasPermissionLevel(2))
+					.then(CommandManager.argument("name", StringArgumentType.word()).executes(ctx -> {
+						var server = ctx.getSource().getServer();
+						var w = dev.konocraft.world.KonoWorld.get(server);
+						switch (StringArgumentType.getString(ctx, "name")) {
+							case "graveyard" -> dev.konocraft.story.WorldEvents.startGraveyard(w, dev.konocraft.story.StoryState.get(server));
+							case "raid" -> dev.konocraft.story.WorldEvents.startToadRaid(w);
+							case "restore" -> dev.konocraft.story.Restoration.restoreAll(w);
+							default -> dev.konocraft.story.WorldEvents.stop(server);
+						}
+						return 1;
+					})))
 				.then(CommandManager.literal("party").requires(src -> src.hasPermissionLevel(2))
 					.then(CommandManager.argument("who", StringArgumentType.word()).executes(ctx -> {
 						Party.join(ctx.getSource().getPlayerOrThrow(), StringArgumentType.getString(ctx, "who"));
