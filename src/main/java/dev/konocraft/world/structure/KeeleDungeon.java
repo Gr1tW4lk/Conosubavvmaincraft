@@ -63,6 +63,13 @@ public final class KeeleDungeon {
 		b.set(hall[0] + 1, FLOOR + 4, hall[1] + 1, Blocks.COBWEB.getDefaultState());
 		b.set(hall[2] - 1, FLOOR + 4, hall[3] - 1, Blocks.COBWEB.getDefaultState());
 		b.set(EX, FLOOR + 5, (hall[1] + hall[3]) / 2, Build.lantern(true, true));
+		// warm lanterns between the pillars, so the hall is creepy but not pitch black
+		for (int lx = hall[0] + 2; lx <= hall[2] - 2; lx += 5) {
+			for (int lz = hall[1] + 1; lz <= hall[3] - 1; lz += 5) {
+				if (!b.get(lx, FLOOR, lz).isAir()) continue;
+				b.set(lx, FLOOR + 5, lz, Build.lantern(false, true));
+			}
+		}
 		// Doorways between the hall and the corridor, and the corridor and the west passage
 		b.clear(EX - 1, FLOOR, HALL_Z1 - 1, EX + 1, FLOOR + 3, HALL_Z1);
 		b.clear(EX - 2, FLOOR, C1_Z1, EX - 1, FLOOR + 3, C1_Z1 + 2);
@@ -148,6 +155,13 @@ public final class KeeleDungeon {
 		b.set(KX1 + 1, FLOOR + h - 1, KZ1 + 1, Blocks.COBWEB.getDefaultState());
 		b.set(KX2 - 1, FLOOR + h - 1, KZ2 - 1, Blocks.COBWEB.getDefaultState());
 		b.set(cx, FLOOR + h - 1, cz, Build.lantern(true, true));
+		// chandeliers of the old court wizard
+		for (int[] p : new int[][]{{KX1 + 3, KZ1 + 4}, {KX1 + 3, KZ2 - 4}, {KX2 - 4, KZ1 + 4}, {KX2 - 4, KZ2 - 4}, {cx, cz - 5}, {cx, cz + 5}}) {
+			b.set(p[0], FLOOR + h - 1, p[1], Blocks.CHAIN.getDefaultState());
+			b.set(p[0], FLOOR + h - 2, p[1], Build.lantern(false, true));
+		}
+		b.set(KX1 + 3, FLOOR, cz - 2, Blocks.CANDLE.getDefaultState().with(CandleBlock.CANDLES, 3).with(CandleBlock.LIT, true));
+		b.set(KX1 + 3, FLOOR, cz + 2, Blocks.CANDLE.getDefaultState().with(CandleBlock.CANDLES, 3).with(CandleBlock.LIT, true));
 		b.set(KX2 - 1, FLOOR, KZ2 - 1, Blocks.AMETHYST_CLUSTER.getDefaultState());
 	}
 }
