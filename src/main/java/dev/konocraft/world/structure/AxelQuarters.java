@@ -655,7 +655,7 @@ final class AxelQuarters {
 		}
 		// trees: pink cherries and a few big oaks
 		int placed = 0;
-		for (int i = 0; i < 160 && placed < 26; i++) {
+		for (int i = 0; i < 400 && placed < 34; i++) {
 			int tx = x1 + 2 + (int) (Terrain.rand(i, 7, 1564) * (x2 - x1 - 4));
 			int tz = z1 + 2 + (int) (Terrain.rand(i, 9, 1564) * (z2 - z1 - 4));
 			if (!treeSpot(b, tx, tz)) continue;
@@ -663,6 +663,7 @@ final class AxelQuarters {
 			int h = 4 + (int) (Terrain.rand(i, 13, 1564) * 2);
 			Block log = cherry ? Blocks.CHERRY_LOG : Blocks.OAK_LOG;
 			BlockState leaves = (cherry ? Blocks.CHERRY_LEAVES : Blocks.OAK_LEAVES).getDefaultState().with(Properties.PERSISTENT, true);
+			b.set(tx, G, tz, Blocks.DIRT.getDefaultState());
 			for (int y = F; y < F + h; y++) b.set(tx, y, tz, log.getDefaultState());
 			for (int dx = -3; dx <= 3; dx++)
 				for (int dy = -1; dy <= 2; dy++)
@@ -688,7 +689,7 @@ final class AxelQuarters {
 				BlockState g = b.get(x + dx, G, z + dz);
 				if (g == null || !g.isOf(Blocks.GRASS_BLOCK)) return false;
 				BlockState f = b.get(x + dx, F, z + dz);
-				if (f != null && !f.isReplaceable()) return false;
+				if (f != null && f.isSolid()) return false;
 			}
 		return true;
 	}

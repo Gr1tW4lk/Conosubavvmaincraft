@@ -200,7 +200,8 @@ public class MapScreen extends Screen {
 		}
 		ctx.fill(0, height - 16, width, height, 0xC0000000);
 		ctx.drawCenteredTextWithShadow(textRenderer, Text.literal("Колесо — масштаб, перетаскивание — сдвиг, M или Esc — закрыть"), width / 2, height - 12, 0xFFCCCCCC);
-		ctx.drawCenteredTextWithShadow(textRenderer, Text.literal("Карта королевства Бельзерг: окрестности Акселя"), width / 2, 6, 0xFFFFE070);
+		ctx.fill(0, 0, width, 18, 0xC0000000);
+		ctx.drawCenteredTextWithShadow(textRenderer, Text.literal("Карта королевства Бельзерг: окрестности Акселя"), width / 2, 5, 0xFFFFE070);
 		super.render(ctx, mouseX, mouseY, delta);
 	}
 

@@ -27,6 +27,7 @@
 | Банщица Юки | [MineSkin: kimono](https://mineskin.org/285ed0d6f6964ad192869a1287a1a10b) |
 | Лорд Алдерп | [MineSkin: king](https://mineskin.org/84a5f2be2c414f23b96610010f50ad50) |
 | Игнис Дастинесс | [MineSkin: noble](https://mineskin.org/c731d6d3223c4274a4d9faa88ddce5d8) |
+| Сена | [MineSkin: Secretary](https://mineskin.org/845a82d9ed4f46618b4c0fcb733985c0) |
 | Торговец Хенрик | [MineSkin: Merchant](https://mineskin.org/17bee1f040104a5b883894c0a03fe53e) |
 
 Скины Бельдии и монстров, все модели, текстуры и звуковые эффекты сделаны для мода с нуля.

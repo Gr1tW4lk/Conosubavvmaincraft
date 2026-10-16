@@ -95,6 +95,11 @@ public final class AxelTown {
 				}
 			}
 		}
+		// Paved squares in front of the guild, Wiz's shop and the church of Eris
+		for (int[] r : new int[][]{{-46, -13, -10, -4}, {12, -13, 34, -4}, {14, 4, 42, 11}}) {
+			for (int x = r[0]; x <= r[2]; x++)
+				for (int z = r[1]; z <= r[3]; z++) b.set(x, G, z, cobbleStreet(x, z));
+		}
 		// Streets continue through the gates and a little beyond
 		for (int i = H - 3; i <= H + 8; i++) {
 			for (int w = -3; w <= 3; w++) {

@@ -102,7 +102,7 @@ public final class ClientAutotest {
 		add(10, c -> command(c, "konocraft unstuck"));
 		add(5, c -> command(c, "gamemode spectator"));
 		shot("03_axel_plaza", tp(0.5, 68.5, 30.5, 180, 8), LOAD);
-		shot("04_axel_aerial", tp(40, 175, 215, 170, 38), LOAD + 160);
+		shot("04_axel_aerial", tp(30, 125, 175, 170, 35), LOAD + 160);
 		shot("05_guild", tp(-28.5, 67, 4.5, 180, 4), LOAD);
 		shot("06_guild_inside", tp(-15.5, 67.6, -17.5, 125, 12), LOAD);
 		shot("07_wiz_shop", tp(23.5, 67.2, -16.5, 180, 14), LOAD);
