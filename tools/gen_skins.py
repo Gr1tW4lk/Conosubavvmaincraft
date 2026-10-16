@@ -5,6 +5,7 @@ Pixel art is described with a few primitives (fill a body part, horizontal bands
 around a limb, front-face details) plus subtle shading so the result reads well in game.
 Run from the repo root: python3 tools/gen_skins.py
 """
+import json
 import os
 import random
 
@@ -107,6 +108,9 @@ class Skin:
 
     def save(self, name):
         os.makedirs(OUT, exist_ok=True)
+        chosen = os.path.join(os.path.dirname(os.path.abspath(__file__)), "skins_chosen.json")
+        if os.path.exists(chosen) and name in json.load(open(chosen)):
+            return  # replaced by a downloaded fan skin (tools/install_skins.py)
         self.img.save(os.path.join(OUT, name + ".png"))
 
 

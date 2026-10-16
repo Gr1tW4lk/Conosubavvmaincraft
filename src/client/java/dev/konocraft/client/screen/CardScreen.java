@@ -12,7 +12,7 @@ import net.minecraft.text.Text;
 
 /** The adventurer card: stats, known skills (pick the active one) and skills you can learn. */
 public class CardScreen extends Screen {
-	private static final int W = 360, H = 230;
+	private static final int W = 360, H = 244;
 
 	public CardScreen() {
 		super(Text.literal("Карта авантюриста"));
@@ -27,7 +27,7 @@ public class CardScreen extends Screen {
 	protected void init() {
 		int x0 = (width - W) / 2, y0 = (height - H) / 2;
 		// Known skills: click to make active
-		int y = y0 + 108;
+		int y = y0 + 118;
 		for (int i = 0; i < ClientState.skills.size(); i++) {
 			Skill s = Skill.byName(ClientState.skills.get(i));
 			if (s == null) continue;
@@ -39,7 +39,7 @@ public class CardScreen extends Screen {
 					refresh();
 				})
 				.dimensions(x0 + 10 + (i % 2) * 86, y + (i / 2) * 21, 84, 20)
-				.tooltip(Tooltip.of(Text.literal(s.title + "\n" + s.description + "\nМана: " + s.mana + ", перезарядка: " + (s.cooldown / 20) + " с")))
+				.tooltip(Tooltip.of(Text.literal(s.title + " (клик — сделать активным)\n" + s.description + "\nМана: " + s.mana + ", перезарядка: " + (s.cooldown / 20) + " с")))
 				.build();
 			addDrawableChild(b);
 		}
@@ -49,7 +49,7 @@ public class CardScreen extends Screen {
 			if (s == null) continue;
 			int cost = ClientState.learnCost.get(i);
 			ButtonWidget b = ButtonWidget.builder(Text.literal(s.title + " — " + cost + " ОН"), btn -> ClientNet.learnSkill(s.name()))
-				.dimensions(x0 + W / 2 + 8, y0 + 108 + i * 21, W / 2 - 18, 20)
+				.dimensions(x0 + W / 2 + 8, y0 + 118 + i * 21, W / 2 - 18, 20)
 				.tooltip(Tooltip.of(Text.literal(s.description + "\nСтоимость: " + cost + " очк. навыков")))
 				.build();
 			b.active = ClientState.skillPoints >= cost;
@@ -75,9 +75,11 @@ public class CardScreen extends Screen {
 		int ink = 0xFF3A2A18;
 		ctx.drawText(textRenderer, Text.literal("Класс: " + cls.title), tx, ty, ink, false);
 		ctx.drawText(textRenderer, Text.literal("Уровень: " + ClientState.level), tx, ty + 12, ink, false);
-		ctx.drawText(textRenderer, Text.literal("Удача: " + ClientState.luck + (ClientState.luck >= 90 ? " (подозрительно высокая)" : ClientState.luck < 25 ? " (очень грустная)" : "")), tx, ty + 24, ink, false);
-		ctx.drawText(textRenderer, Text.literal("Деньги: " + String.format("%,d", ClientState.money).replace(',', ' ') + " эрис"), tx, ty + 36, 0xFF8A5A00, false);
-		ctx.drawText(textRenderer, Text.literal("Очки навыков: " + ClientState.skillPoints), tx, ty + 48, 0xFF1A5A9A, false);
+		ctx.drawText(textRenderer, Text.literal("Удача: " + ClientState.luck), tx, ty + 24, ink, false);
+		String luckNote = ClientState.luck >= 90 ? "(подозрительно высокая)" : ClientState.luck < 25 ? "(очень грустная)" : "";
+		ctx.drawText(textRenderer, Text.literal(luckNote), tx + 8, ty + 35, 0xFF8A7A6A, false);
+		ctx.drawText(textRenderer, Text.literal("Деньги: " + String.format("%,d", ClientState.money).replace(',', ' ') + " эрис"), tx, ty + 47, 0xFF8A5A00, false);
+		ctx.drawText(textRenderer, Text.literal("Очки навыков: " + ClientState.skillPoints), tx, ty + 59, 0xFF1A5A9A, false);
 		// exp bar
 		int bx = x0 + W / 2 + 8, by = ty;
 		ctx.drawText(textRenderer, Text.literal("Опыт: " + ClientState.exp + " / " + ClientState.expNext), bx, by, ink, false);
@@ -91,15 +93,15 @@ public class CardScreen extends Screen {
 		} else if (!ClientState.bounty.isEmpty()) {
 			ctx.drawText(textRenderer, Text.literal(ClientState.bounty), bx, by + 46, 0xFF6A3A00, false);
 		}
-		ctx.fill(x0 + 8, y0 + 94, x0 + W - 8, y0 + 95, 0xFF9A7A50);
-		ctx.drawText(textRenderer, Text.literal("Навыки (клик — сделать активным, R — применить):"), x0 + 10, y0 + 97, ink, false);
-		ctx.drawText(textRenderer, Text.literal("Можно изучить:"), x0 + W / 2 + 8, y0 + 97, ink, false);
+		ctx.fill(x0 + 8, y0 + 102, x0 + W - 8, y0 + 103, 0xFF9A7A50);
+		ctx.drawText(textRenderer, Text.literal("Ваши навыки (R — применить):"), x0 + 10, y0 + 106, ink, false);
+		ctx.drawText(textRenderer, Text.literal("Можно изучить:"), x0 + W / 2 + 8, y0 + 106, ink, false);
 		if (ClientState.skills.isEmpty()) {
-			ctx.drawText(textRenderer, Text.literal("Пока ни одного навыка."), x0 + 12, y0 + 112, 0xFF7A6A5A, false);
+			ctx.drawText(textRenderer, Text.literal("Пока ни одного навыка."), x0 + 12, y0 + 122, 0xFF7A6A5A, false);
 		}
 		if (ClientState.learnable.isEmpty()) {
-			ctx.drawText(textRenderer, Text.literal("Знакомьтесь с людьми,"), x0 + W / 2 + 10, y0 + 112, 0xFF7A6A5A, false);
-			ctx.drawText(textRenderer, Text.literal("чтобы учиться новому."), x0 + W / 2 + 10, y0 + 123, 0xFF7A6A5A, false);
+			ctx.drawText(textRenderer, Text.literal("Знакомьтесь с людьми,"), x0 + W / 2 + 10, y0 + 122, 0xFF7A6A5A, false);
+			ctx.drawText(textRenderer, Text.literal("чтобы учиться новому."), x0 + W / 2 + 10, y0 + 133, 0xFF7A6A5A, false);
 		}
 		super.render(ctx, mouseX, mouseY, delta);
 	}

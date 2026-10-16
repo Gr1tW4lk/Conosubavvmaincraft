@@ -354,22 +354,30 @@ def destroyer():
                 for j in range(1, h - 1, 3):
                     img.putpixel((x + i, y + j), (255, 210, 120, 255) if rng.random() < 0.6 else (40, 40, 50, 255))
 
+    # Spider legs: the femur rises above the hull, the long shin comes down to the ground.
+    # Front legs splay forward, back legs backward. KonoModels.Destroyer animates these angles.
     legs = []
-    zs = [-16, -6, 6, 16]
+    zs = [-17, -6, 6, 17]
+    spread = [0.38, 0.13, -0.13, -0.38]
     for side, sx in (("l", -1), ("r", 1)):
         for k, z in enumerate(zs):
             name = f"leg_{side}{k}"
-            legs.append(Part(name, (sx * 19, 8, z), (0, 0, sx * -0.55), [
-                Cube((-2, -2, -2) if sx > 0 else (-2, -2, -2), (4, 4, 4), joint_p),
-                Cube((0, -1.5, -1.5) if sx > 0 else (-11, -1.5, -1.5), (11, 3, 3), leg_p)], [
-                Part(name + "_lower", (sx * 10, 0, 0), (0, 0, sx * 0.3), [
-                    Cube((-2, -1, -2), (4, 4, 4), joint_p),
-                    Cube((-1.5, 2, -1.5), (3, 16, 3), leg_p),
-                    Cube((-2.5, 17, -2.5), (5, 2, 5), joint_p)])]))
+            legs.append(Part(name, (sx * 19, 8, z), (0, sx * spread[k], sx * -0.75), [
+                Cube((-2.5, -2.5, -2.5), (5, 5, 5), joint_p),
+                Cube((0, -2, -2) if sx > 0 else (-16, -2, -2), (16, 4, 4), leg_p),
+                Cube((2, -3, -1) if sx > 0 else (-14, -3, -1), (12, 1, 2), joint_p)], [
+                Part(name + "_lower", (sx * 16, 0, 0), (0, 0, sx * 0.55), [
+                    Cube((-2.5, -2.5, -2.5), (5, 5, 5), joint_p),
+                    Cube((-1.5, 2, -1.5), (3, 24, 3), leg_p),
+                    Cube((-2, 8, -2), (4, 6, 4), plates((90, 84, 80), (40, 38, 36), 3, 0.08)),
+                    Cube((-3, 25, -3), (6, 2, 6), joint_p)])]))
+    belly_p = plates((110, 100, 88), seam, 5, 0.08)
     return Model("destroyer", (256, 256), [
         Part("hull", (0, 4, 0), (0, 0, 0), [
             Cube((-20, -6, -24), (40, 12, 48), deck_p),
             Cube((-17, 6, -21), (34, 3, 42), hull_p),
+            Cube((-13, 9, -17), (26, 3, 34), belly_p),
+            Cube((-8, 12, -11), (16, 2, 22), belly_p),
         ], [
             Part("front", (0, 0, -24), (0, 0, 0), [Cube((-12, -5, -8), (24, 10, 8), face_p)]),
             Part("tower_main", (0, -6, 2), (0, 0, 0), [Cube((-10, -9, -10), (20, 9, 18), window_p),

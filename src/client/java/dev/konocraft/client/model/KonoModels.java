@@ -137,9 +137,9 @@ public final class KonoModels {
 				float phase = (i % 2 == 0 ? 0 : MathHelper.PI) + (i < 4 ? 0 : MathHelper.PI);
 				float step = walking ? MathHelper.sin(age * 0.18f + phase) : 0;
 				float lift = walking ? Math.max(0, MathHelper.cos(age * 0.18f + phase)) : 0;
-				femurs[i].yaw = step * 0.35f * side;
-				femurs[i].roll = side * (-0.55f - lift * 0.25f) * (1 - sink) + side * 0.15f * sink;
-				shins[i].roll = side * 0.3f * (1 - sink) + side * -1.1f * sink;
+				femurs[i].yaw = femurs[i].getDefaultTransform().yaw + step * 0.22f * side;
+				femurs[i].roll = side * (-0.75f - lift * 0.25f) * (1 - sink) + side * 0.15f * sink;
+				shins[i].roll = side * (0.55f + lift * 0.15f) * (1 - sink) + side * -1.1f * sink;
 				femurs[i].pivotY = 8;
 			}
 		}

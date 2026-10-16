@@ -74,7 +74,9 @@ public final class ClientAutotest {
 			if (c.currentScreen != null) c.setScreen(null);
 			command(c, command);
 		});
-		add(delay, c -> screenshot(c, name));
+		// chat feedback of the commands would cover the picture; the frame is drawn before the shot
+		add(delay - 5, c -> c.inGameHud.getChatHud().clear(false));
+		add(5, c -> screenshot(c, name));
 	}
 
 	private static void summon(String type, double x, double y, double z, float yaw) {
@@ -112,10 +114,7 @@ public final class ClientAutotest {
 		shot("13_lake", tp(-40, 80, -150, 180, 20), LOAD);
 		shot("14_farms", tp(-160, 78, 70, 140, 20), LOAD);
 		// Characters lineup on the plaza
-		add(10, c -> {
-			command(c, "gamemode creative");
-			command(c, tp(0.5, 65, 22.5, 180, 0));
-		});
+		add(10, c -> command(c, tp(0.5, 65, 22.5, 180, 0)));
 		String[] chars = {"megumin", "aqua", "darkness", "kazuma", "eris", "luna", "wiz", "vanir", "yunyun"};
 		for (int i = 0; i < chars.length; i++) {
 			summon(chars[i], -8 + i * 2 + 0.5, 65, 17.5, 0);
@@ -139,7 +138,7 @@ public final class ClientAutotest {
 		summon("destroyer", 0.5, ground(0.5, dz), dz, 180);
 		summon("barrier_crystal", 9.5, ground(9.5, dz - 4), dz - 4, 0);
 		summon("destroyer_core", -4.5, ground(-4.5, dz - 18), dz - 18, 0);
-		shot("17_destroyer", tp(-22, ground(-22, dz - 35) + 6, dz - 35, -150, 8), LOAD);
+		shot("17_destroyer", tp(-30, ground(-30, dz - 48) + 8, dz - 48, -32, 4), LOAD);
 		// Explosion!
 		add(10, c -> command(c, tp(0.5, ground(0.5, 240) + 2, 240, 0, 8)));
 		add(LOAD, c -> command(c, "konocraft fx magic_circle"));

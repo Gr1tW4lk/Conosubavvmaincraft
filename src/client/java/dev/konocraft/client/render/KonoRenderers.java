@@ -47,8 +47,8 @@ public final class KonoRenderers {
 		EntityRendererRegistry.register(ModEntities.GOBLIN, ctx -> new HumanoidMonsterRenderer<>(ctx, "goblin", 0.7f));
 		EntityRendererRegistry.register(ModEntities.UNDEAD_KNIGHT, ctx -> new HumanoidMonsterRenderer<>(ctx, "undead_knight", 1.05f));
 		EntityRendererRegistry.register(ModEntities.BELDIA, BeldiaRenderer::new);
-		EntityRendererRegistry.register(ModEntities.GIANT_TOAD, ctx -> new ToadRenderer(ctx, 1.0f, "giant_toad"));
-		EntityRendererRegistry.register(ModEntities.TOAD_KING, ctx -> new ToadRenderer(ctx, 2.2f, "toad_king"));
+		EntityRendererRegistry.register(ModEntities.GIANT_TOAD, ctx -> new ToadRenderer(ctx, 1.55f, "giant_toad"));
+		EntityRendererRegistry.register(ModEntities.TOAD_KING, ctx -> new ToadRenderer(ctx, 3.0f, "toad_king"));
 		EntityRendererRegistry.register(ModEntities.FLYING_CABBAGE, CabbageRenderer::new);
 		EntityRendererRegistry.register(ModEntities.DESTROYER_GOLEM, GolemRenderer::new);
 		EntityRendererRegistry.register(ModEntities.DESTROYER, DestroyerRenderer::new);

@@ -231,6 +231,59 @@ def mchow(character):
     return out
 
 
+# ---------------------------------------------------------------- other galleries
+
+WEB_QUERIES = {
+    "yunyun": ["yunyun", "yun yun", "yunyun konosuba", "konosuba"],
+    "luna": ["luna konosuba", "konosuba", "guild receptionist", "receptionist"],
+}
+WEB_SEARCH = [
+    "https://api.mineskin.org/v2/skins?size=64&filter={q}",
+    "https://api.mineskin.org/get/list/1?size=64&filter={q}",
+    "https://www.minecraftskins.net/search?q={q}",
+    "https://minecraft.novaskin.me/search?q={q}",
+    "https://www.planetminecraft.com/skins/?keywords={q}",
+    "https://mskins.net/en/search?query={q}",
+    "https://minecraft-inside.ru/skins/search/?q={q}",
+    "https://tlauncher.org/ru/catalog/skin/?q={q}",
+    "https://www.skinsmc.org/en/search?q={q}",
+]
+
+
+def page_images(base, html):
+    urls = set()
+    for m in re.finditer(r'https?://textures\.minecraft\.net/texture/[0-9a-f]+', html):
+        urls.add(m.group(0).replace("http://", "https://"))
+    for m in re.finditer(r'(?:src|href|data-src|data-skin|content)=["\']([^"\'\s<>]+?\.png[^"\'\s<>]*)["\']', html):
+        urls.add(urllib.parse.urljoin(base, m.group(1).replace("&amp;", "&")))
+    for m in re.finditer(r'(https?:\\?/\\?/[^"\'\s<>]+?\.png)', html):
+        urls.add(m.group(1).replace("\\/", "/"))
+    return list(urls)
+
+
+def web(character):
+    out = []
+    for q in WEB_QUERIES.get(character, []):
+        for pattern in WEB_SEARCH:
+            if out_of_time():
+                return out
+            url = pattern.format(q=urllib.parse.quote(q))
+            html = get(url, retries=0)
+            if not html:
+                continue
+            host = urllib.parse.urlparse(url).netloc
+            dump(f"web {host} {q}", html)
+            imgs = page_images(url, html)
+            print(f"  {host} '{q}': {len(html)} bytes, {len(imgs)} images", flush=True)
+            for u in imgs[:40]:
+                if out_of_time():
+                    return out
+                data = get(u, binary=True, retries=0)
+                if data and skin_size_ok(data):
+                    out.append((f"web-{host}-{len(out)}", data, url))
+    return out
+
+
 # ---------------------------------------------------------------- previews
 
 def to_modern(img):
@@ -317,7 +370,12 @@ def main():
     for character in only:
         print("==", character, flush=True)
         found, digests = [], set()
-        for source in ((mojang,) if len(sys.argv) > 2 else (mchow, mojang)):
+        sources = (mchow, mojang)
+        if len(sys.argv) > 3:
+            sources = tuple(globals()[n] for n in sys.argv[3].split(","))
+        elif len(sys.argv) > 2:
+            sources = (mojang,)
+        for source in sources:
             if out_of_time():
                 print("  out of time")
                 break

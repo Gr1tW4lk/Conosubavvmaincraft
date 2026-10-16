@@ -17,7 +17,7 @@ import java.util.Set;
 
 /** Renders story characters and townsfolk with their own skins and story poses. */
 public class CharacterRenderer<T extends KonoNpcEntity> extends BipedEntityRenderer<T, CharacterModel<T>> {
-	public static final Set<String> SLIM = Set.of("megumin", "aqua", "darkness", "eris", "luna", "wiz", "yunyun");
+	public static final Set<String> SLIM = Set.of("aqua", "darkness", "luna", "wiz", "yunyun");
 	private final String key;
 	private final float scale;
 

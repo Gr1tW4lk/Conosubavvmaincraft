@@ -49,9 +49,9 @@ public final class ModEntities {
 
 	// Monsters
 	public static final EntityType<GiantToadEntity> GIANT_TOAD = register("giant_toad", FabricEntityTypeBuilder.create(SpawnGroup.MONSTER, GiantToadEntity::new)
-		.dimensions(EntityDimensions.fixed(2.2f, 1.9f)).trackRangeBlocks(80).build());
+		.dimensions(EntityDimensions.fixed(3.3f, 2.9f)).trackRangeBlocks(96).build());
 	public static final EntityType<GiantToadEntity> TOAD_KING = register("toad_king", FabricEntityTypeBuilder.create(SpawnGroup.MONSTER, GiantToadEntity::new)
-		.dimensions(EntityDimensions.fixed(4.8f, 4.0f)).trackRangeBlocks(96).build());
+		.dimensions(EntityDimensions.fixed(6.4f, 5.4f)).trackRangeBlocks(128).build());
 	public static final EntityType<FlyingCabbageEntity> FLYING_CABBAGE = register("flying_cabbage", FabricEntityTypeBuilder.create(SpawnGroup.MISC, FlyingCabbageEntity::new)
 		.dimensions(EntityDimensions.fixed(0.6f, 0.6f)).trackRangeBlocks(64).build());
 	public static final EntityType<KonoMonsterEntity.Goblin> GOBLIN = register("goblin", FabricEntityTypeBuilder.create(SpawnGroup.MONSTER, KonoMonsterEntity.Goblin::new)

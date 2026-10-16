@@ -182,7 +182,11 @@ public class DialogueScreen extends Screen {
 				ctx.enableScissor(x1 + 4, y1 + 4, x1 + 86, y2 - 4);
 				float h = le.getHeight();
 				int size = (int) (52 / Math.max(1.0f, h / 1.8f));
+				// hide the floating name tag, the dialogue box already shows the speaker's name
+				Text customName = le.getCustomName();
+				le.setCustomName(null);
 				InventoryScreen.drawEntity(ctx, px, y2 + (int) (size * h * 0.55f), size, (float) (px - mouseX) * 0.1f, -10f, le);
+				le.setCustomName(customName);
 				ctx.disableScissor();
 				textX = x1 + 94;
 			}

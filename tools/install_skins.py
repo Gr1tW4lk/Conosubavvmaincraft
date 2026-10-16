@@ -16,6 +16,7 @@ from PIL import Image, ImageOps
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEX = os.path.join(ROOT, "src/main/resources/assets/konocraft/textures/entity/character")
 RENDERER = os.path.join(ROOT, "src/client/java/dev/konocraft/client/render/CharacterRenderer.java")
+CHARACTERS = ["megumin", "aqua", "darkness", "kazuma", "eris", "luna", "wiz", "vanir", "yunyun"]
 
 
 def legacy_to_modern(img):
@@ -48,7 +49,6 @@ def is_slim(img):
 def main():
     src = sys.argv[1]
     chosen = json.load(open(os.path.join(ROOT, "tools/skins_chosen.json")))
-    slim = []
     for key, fn in sorted(chosen.items()):
         if key.startswith("_"):
             continue
@@ -56,12 +56,14 @@ def main():
         if img.size == (64, 32):
             img = legacy_to_modern(img)
         assert img.size == (64, 64), (fn, img.size)
-        if is_slim(img):
-            slim.append(key)
+        if key.startswith("townsfolk"):
+            assert not is_slim(img), f"{fn}: townsfolk share the wide model"
         img.save(os.path.join(TEX, key + ".png"))
-        print(f"{key:16s} <- {fn} {'slim' if key in slim else 'wide'}")
+        print(f"{key:16s} <- {fn} {'slim' if is_slim(img) else 'wide'}")
+    # every story character, downloaded or generated, picks its arm width from its texture
+    slim = [k for k in CHARACTERS if is_slim(Image.open(os.path.join(TEX, k + ".png")).convert("RGBA"))]
     code = open(RENDERER).read()
-    names = ", ".join(f'"{k}"' for k in slim if not k.startswith("townsfolk"))
+    names = ", ".join(f'"{k}"' for k in slim)
     code = re.sub(r"SLIM = Set\.of\([^)]*\);", f"SLIM = Set.of({names});", code)
     open(RENDERER, "w").write(code)
     print("slim:", names)
