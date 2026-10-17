@@ -3,7 +3,6 @@ package dev.konocraft.client.screen;
 import dev.konocraft.client.ClientNet;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 
@@ -38,20 +37,20 @@ public class BoardScreen extends Screen {
 			final int index = i;
 			Bounty b = bounties.get(i);
 			boolean taken = b.id().equals(current);
-			ButtonWidget btn = ButtonWidget.builder(Text.literal(taken ? "Взято" : "Взять"), w -> {
+			KonoButton btn = new KonoButton(x0() + i * (CARD_W + 10) + 10, y0 + CARD_H - 26, CARD_W - 20, 20, Text.literal(taken ? "Взято" : "Взять"), w -> {
 				ClientNet.acceptBounty(index);
 				close();
-			}).dimensions(x0() + i * (CARD_W + 10) + 10, y0 + CARD_H - 26, CARD_W - 20, 20).build();
+			}, KonoButton.Style.PAPER);
 			btn.active = !taken;
 			addDrawableChild(btn);
 		}
 		if (!current.isEmpty()) {
-			addDrawableChild(ButtonWidget.builder(Text.literal("Отказаться от текущего"), w -> {
+			addDrawableChild(KonoButton.of(Text.literal("Отказаться от текущего"), width / 2 - 80, y0 + CARD_H + 12, 160, 20, w -> {
 				ClientNet.acceptBounty(-1);
 				close();
-			}).dimensions(width / 2 - 80, y0 + CARD_H + 12, 160, 20).build());
+			}));
 		}
-		addDrawableChild(ButtonWidget.builder(Text.literal("Закрыть"), w -> close()).dimensions(width / 2 - 40, y0 + CARD_H + 36, 80, 20).build());
+		addDrawableChild(KonoButton.of(Text.literal("Закрыть"), width / 2 - 40, y0 + CARD_H + 36, 80, 20, w -> close()));
 	}
 
 	@Override
@@ -64,9 +63,8 @@ public class BoardScreen extends Screen {
 			Bounty b = bounties.get(i);
 			int x = x0() + i * (CARD_W + 10);
 			int tilt = (i - 1) * 2;
-			ctx.fill(x, y0 + tilt, x + CARD_W, y0 + CARD_H + tilt, 0xFFEFE2C0);
-			ctx.fill(x, y0 + tilt, x + CARD_W, y0 + 3 + tilt, 0xFFB08A50);
-			ctx.fill(x + CARD_W / 2 - 3, y0 - 3 + tilt, x + CARD_W / 2 + 3, y0 + 3 + tilt, 0xFFC03030);
+			KonoUi.nine(ctx, KonoUi.NOTE, x, y0 + tilt, CARD_W, CARD_H, 0, 0, 48, 48, 8, 48, 48);
+			KonoUi.icon(ctx, 0, 8, x + CARD_W / 2 - 4, y0 - 4 + tilt);
 			int ty = y0 + 8 + tilt;
 			for (OrderedText line : textRenderer.wrapLines(Text.literal(b.title()), CARD_W - 12)) {
 				ctx.drawText(textRenderer, line, x + 6, ty, 0xFF5A1A0A, false);

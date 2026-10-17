@@ -6,7 +6,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -33,7 +32,7 @@ public class DialogueScreen extends Screen {
 	private int portraitId;
 	private float revealed;
 	private int age;
-	private final List<ButtonWidget> choiceButtons = new ArrayList<>();
+	private final List<KonoButton> choiceButtons = new ArrayList<>();
 	private boolean waitingServer;
 
 	private DialogueScreen() {
@@ -65,19 +64,25 @@ public class DialogueScreen extends Screen {
 	}
 
 	private void rebuild() {
-		for (ButtonWidget b : choiceButtons) remove(b);
+		for (KonoButton b : choiceButtons) remove(b);
 		choiceButtons.clear();
 		if (choices == null || choices.isEmpty()) return;
-		int w = Math.min(320, width - 40);
+		int w = Math.min(340, width - 40);
 		int x = width - w - 20;
-		int y = height - BOX_HEIGHT - 16 - choices.size() * 22;
+		int[] heights = new int[choices.size()];
+		int total = 0;
+		for (int i = 0; i < choices.size(); i++) {
+			heights[i] = KonoButton.choiceHeight(textRenderer, Text.literal((i + 1) + ". " + choices.get(i)), w);
+			total += heights[i] + 3;
+		}
+		int y = height - BOX_HEIGHT - 14 - total;
 		for (int i = 0; i < choices.size(); i++) {
 			final int index = i;
-			ButtonWidget b = ButtonWidget.builder(Text.literal((i + 1) + ". " + choices.get(i)), btn -> choose(index))
-				.dimensions(x, y + i * 22, w, 20).build();
+			KonoButton b = new KonoButton(x, y, w, heights[i], Text.literal((i + 1) + ". " + choices.get(i)), btn -> choose(index), KonoButton.Style.CHOICE);
 			b.visible = false;
 			choiceButtons.add(b);
 			addDrawableChild(b);
+			y += heights[i] + 3;
 		}
 	}
 
@@ -133,7 +138,11 @@ public class DialogueScreen extends Screen {
 			}
 		}
 		boolean showChoices = fullyShown();
-		for (ButtonWidget b : choiceButtons) b.visible = showChoices;
+		for (int i = 0; i < choiceButtons.size(); i++) {
+			KonoButton b = choiceButtons.get(i);
+			if (showChoices && !b.visible) b.appear(i * 70L);
+			b.visible = showChoices;
+		}
 	}
 
 	@Override
@@ -189,16 +198,15 @@ public class DialogueScreen extends Screen {
 		if (hasText) {
 			int x1 = 12, x2 = width - 12;
 			int y1 = height - BOX_HEIGHT - 8, y2 = height - 8;
-			ctx.fill(x1, y1, x2, y2, 0xF0101018);
+			KonoUi.panel(ctx, KonoUi.PANEL_DARK, x1, y1, x2 - x1, y2 - y1);
 			int border = 0xFF000000 | color;
-			ctx.fill(x1, y1, x2, y1 + 2, border);
-			ctx.fill(x1, y2 - 1, x2, y2, 0x80FFFFFF & border);
-			int textX = x1 + 12;
+			int textX = x1 + 14;
 			// Portrait
 			Entity e = portraitId >= 0 && client != null && client.world != null ? client.world.getEntityById(portraitId) : null;
 			if (e instanceof LivingEntity le && !le.isInvisible()) {
-				int px = x1 + 44;
-				ctx.enableScissor(x1 + 4, y1 + 4, x1 + 86, y2 - 4);
+				int px = x1 + 47;
+				KonoUi.nine(ctx, KonoUi.PORTRAIT, x1 + 7, y1 + 7, 80, y2 - y1 - 14, 0, 0, 48, 48, 8, 48, 48);
+				ctx.enableScissor(x1 + 11, y1 + 11, x1 + 83, y2 - 11);
 				float h = le.getHeight();
 				int size = (int) (52 / Math.max(1.0f, h / 1.8f));
 				// hide the floating name tag, the dialogue box already shows the speaker's name
@@ -207,19 +215,20 @@ public class DialogueScreen extends Screen {
 				InventoryScreen.drawEntity(ctx, px, y2 + (int) (size * h * 0.55f), size, (float) (px - mouseX) * 0.1f, -10f, le);
 				le.setCustomName(customName);
 				ctx.disableScissor();
-				textX = x1 + 94;
+				textX = x1 + 96;
 			}
 			// Name tag
 			if (speakerName != null && !speakerName.isEmpty()) {
-				int nw = textRenderer.getWidth(speakerName) + 16;
-				ctx.fill(textX - 4, y1 - 14, textX - 4 + nw, y1, 0xE0101018);
-				ctx.fill(textX - 4, y1 - 14, textX - 4 + nw, y1 - 13, border);
-				ctx.drawText(textRenderer, Text.literal(speakerName), textX + 4, y1 - 10, border, true);
+				int nw = textRenderer.getWidth(speakerName) + 26;
+				KonoUi.nine(ctx, KonoUi.NAMEPLATE, textX - 6, y1 - 13, nw, 18, 0, 0, 32, 16, 6, 32, 16);
+				ctx.fill(textX, y1 - 7, textX + 4, y1 - 3, border);
+				ctx.fill(textX + 1, y1 - 8, textX + 3, y1 - 2, border);
+				ctx.drawText(textRenderer, Text.literal(speakerName), textX + 9, y1 - 8, border, true);
 			}
 			// Text with typewriter effect
 			String shown = fullText.substring(0, Math.min(fullText.length(), (int) revealed));
 			List<OrderedText> lines = textRenderer.wrapLines(Text.literal(shown), x2 - textX - 14);
-			int ty = y1 + 12;
+			int ty = y1 + 14;
 			boolean narrator = speakerName == null || speakerName.isEmpty();
 			for (OrderedText line : lines) {
 				ctx.drawText(textRenderer, line, textX, ty, narrator ? 0xFFCCCCCC : 0xFFFFFFFF, true);
@@ -227,11 +236,11 @@ public class DialogueScreen extends Screen {
 				if (ty > y2 - 12) break;
 			}
 			if (fullyShown() && auto == 0 && (choices == null || choices.isEmpty()) && (age / 10) % 2 == 0) {
-				ctx.drawText(textRenderer, Text.literal("▼"), x2 - 18, y2 - 14, border, false);
+				KonoUi.icon(ctx, KonoUi.ARROW, 0, x2 - 22, y2 - 18 + (age / 5) % 2);
 			}
 			if (auto == 0 && (choices == null || choices.isEmpty())) {
 				String hint = "ЛКМ / Пробел — далее";
-				ctx.drawText(textRenderer, Text.literal(hint), x2 - textRenderer.getWidth(hint) - 28, y2 - 12, 0x60FFFFFF, false);
+				ctx.drawText(textRenderer, Text.literal(hint), x2 - textRenderer.getWidth(hint) - 30, y2 - 16, 0x70C8D0FF, false);
 			}
 		}
 		super.render(ctx, mouseX, mouseY, delta);

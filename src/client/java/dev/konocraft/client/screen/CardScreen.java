@@ -6,8 +6,6 @@ import dev.konocraft.skill.PlayerClass;
 import dev.konocraft.skill.Skill;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.tooltip.Tooltip;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 
 /** The adventurer card: stats, known skills (pick the active one) and skills you can learn. */
@@ -33,14 +31,12 @@ public class CardScreen extends Screen {
 			if (s == null) continue;
 			final int index = i;
 			boolean active = i == ClientState.selectedSkill;
-			ButtonWidget b = ButtonWidget.builder(Text.literal((active ? "▶ " : "") + s.title + " (" + s.mana + ")"), btn -> {
+			KonoButton b = new KonoButton(x0 + 10 + (i % 2) * 86, y + (i / 2) * 21, 84, 20, Text.literal((active ? "▶ " : "") + s.title + " (" + s.mana + ")"), btn -> {
 					ClientNet.selectSkill(index, true);
 					ClientState.selectedSkill = index;
 					refresh();
-				})
-				.dimensions(x0 + 10 + (i % 2) * 86, y + (i / 2) * 21, 84, 20)
-				.tooltip(Tooltip.of(Text.literal(s.title + " (клик — сделать активным)\n" + s.description + "\nМана: " + s.mana + ", перезарядка: " + (s.cooldown / 20) + " с")))
-				.build();
+				}, KonoButton.Style.PAPER)
+				.tip(Text.literal(s.title + " (клик — сделать активным)\n" + s.description + "\nМана: " + s.mana + ", перезарядка: " + (s.cooldown / 20) + " с"));
 			addDrawableChild(b);
 		}
 		// Learnable skills
@@ -48,14 +44,13 @@ public class CardScreen extends Screen {
 			Skill s = Skill.byName(ClientState.learnable.get(i));
 			if (s == null) continue;
 			int cost = ClientState.learnCost.get(i);
-			ButtonWidget b = ButtonWidget.builder(Text.literal(s.title + " — " + cost + " ОН"), btn -> ClientNet.learnSkill(s.name()))
-				.dimensions(x0 + W / 2 + 8, y0 + 118 + i * 21, W / 2 - 18, 20)
-				.tooltip(Tooltip.of(Text.literal(s.description + "\nСтоимость: " + cost + " очк. навыков")))
-				.build();
+			KonoButton b = new KonoButton(x0 + W / 2 + 8, y0 + 118 + i * 21, W / 2 - 18, 20, Text.literal(s.title + " — " + cost + " ОН"),
+				btn -> ClientNet.learnSkill(s.name()), KonoButton.Style.PAPER)
+				.tip(Text.literal(s.description + "\nСтоимость: " + cost + " очк. навыков"));
 			b.active = ClientState.skillPoints >= cost;
 			addDrawableChild(b);
 		}
-		addDrawableChild(ButtonWidget.builder(Text.literal("Закрыть"), btn -> close()).dimensions(x0 + W - 70, y0 + H - 26, 60, 20).build());
+		addDrawableChild(new KonoButton(x0 + W - 72, y0 + H - 28, 60, 20, Text.literal("Закрыть"), btn -> close(), KonoButton.Style.PAPER));
 	}
 
 	@Override
@@ -63,9 +58,9 @@ public class CardScreen extends Screen {
 		renderBackground(ctx);
 		int x0 = (width - W) / 2, y0 = (height - H) / 2;
 		// card body
-		ctx.fill(x0, y0, x0 + W, y0 + H, 0xF0E8DCC0);
-		ctx.fill(x0, y0, x0 + W, y0 + 24, 0xFF7A4A22);
-		ctx.fill(x0 + 2, y0 + 2, x0 + W - 2, y0 + 3, 0xFFC89A5A);
+		KonoUi.panel(ctx, KonoUi.PANEL_PAPER, x0, y0, W, H);
+		ctx.fill(x0 + 5, y0 + 5, x0 + W - 5, y0 + 24, 0xFF7A4A22);
+		ctx.fill(x0 + 5, y0 + 23, x0 + W - 5, y0 + 24, 0xFFC89A5A);
 		ctx.drawText(textRenderer, Text.literal("★ КАРТА АВАНТЮРИСТА ★"), x0 + 10, y0 + 8, 0xFFFFE9B0, true);
 		String name = client != null && client.player != null ? client.player.getName().getString() : "";
 		ctx.drawText(textRenderer, Text.literal(name), x0 + W - 10 - textRenderer.getWidth(name), y0 + 8, 0xFFFFFFFF, true);

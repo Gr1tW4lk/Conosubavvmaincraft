@@ -37,14 +37,14 @@ public final class KonoHud {
 
 	private static void objective(DrawContext ctx, MinecraftClient mc, TextRenderer tr) {
 		if (ClientState.objective == null || ClientState.objective.isEmpty()) return;
-		int x = 6, y = 6, width = 190;
+		int x = 10, y = 10, width = 190;
 		String[] parts = ClientState.objective.split("\n");
 		int lines = 0;
 		for (String p : parts) lines += tr.wrapLines(Text.literal(p), width).size();
 		int boxH = 16 + lines * 10 + (ClientState.objectiveTarget != null ? 12 : 0);
-		ctx.fill(x - 3, y - 3, x + width + 4, y + boxH - 2, 0x90000000);
-		ctx.fill(x - 3, y - 3, x - 1, y + boxH - 2, 0xFFFFC040);
-		ctx.drawText(tr, Text.literal("★ Задание"), x + 2, y, 0xFFFFC040, true);
+		dev.konocraft.client.screen.KonoUi.panel(ctx, dev.konocraft.client.screen.KonoUi.PANEL_DARK, x - 7, y - 7, width + 16, boxH + 8);
+		dev.konocraft.client.screen.KonoUi.icon(ctx, dev.konocraft.client.screen.KonoUi.GEM_LIT, 0, x + 1, y);
+		ctx.drawText(tr, Text.literal("Задание"), x + 12, y, 0xFFFFC040, true);
 		int ty = y + 12;
 		for (int i = 0; i < parts.length; i++) {
 			List<OrderedText> wrapped = tr.wrapLines(Text.literal(parts[i]), width);

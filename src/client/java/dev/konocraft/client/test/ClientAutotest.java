@@ -2,6 +2,7 @@ package dev.konocraft.client.test;
 
 import dev.konocraft.KonoCraft;
 import dev.konocraft.client.screen.CardScreen;
+import dev.konocraft.client.screen.DialogueScreen;
 import dev.konocraft.world.Regions;
 import dev.konocraft.world.Terrain;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -156,6 +157,16 @@ public final class ClientAutotest {
 		shot("35_lane", tp(-121, 66.6, -60.5, 0, 0), LOAD);
 		shot("37_casino", tp(60.5, 70, 2.5, 180, 12), LOAD);
 		shot("38_casino_hall", tp(60.5, 68.2, -11.5, 180, 15), LOAD);
+		// a dialogue with choices, to see the styled box and answer buttons
+		add(10, c -> command(c, tp(57.5, 65, -22.5, 180, 0)));
+		add(40, c -> command(c, "konocraft dialogue croupier_talk"));
+		for (int i = 0; i < 4; i++) {
+			add(25, c -> {
+				if (c.currentScreen instanceof DialogueScreen d) d.autotestStep(0);
+			});
+		}
+		add(40, c -> screenshot(c, "39_choices"));
+		add(10, c -> command(c, "konocraft unstuck"));
 		add(10, c -> command(c, tp(0.5, 66, 30.5, 180, 0)));
 		add(LOAD, c -> c.setScreen(new dev.konocraft.client.screen.MapScreen()));
 		add(100, c -> screenshot(c, "36_map"));
