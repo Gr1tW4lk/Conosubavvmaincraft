@@ -296,6 +296,7 @@ MINESKIN_QUERIES = {
     "ignis": ["noble", "aristocrat", "duke", "lord"], "smith": ["blacksmith", "smith", "dwarf"],
     "innkeeper": ["innkeeper", "barmaid", "tavern"], "bathkeeper": ["kimono", "yukata", "onsen"],
     "merchant": ["merchant", "trader", "shopkeeper"],
+    "chris": ["chris konosuba", "chris", "thief girl", "silver hair girl", "rogue girl"], "croupier": ["croupier", "dealer", "casino", "bunny girl"],
 }
 
 

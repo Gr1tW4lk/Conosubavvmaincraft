@@ -30,7 +30,7 @@ jobs:
         run: |
           pip install -q pillow
           mkdir -p skins_out
-          python3 tools/fetch_skins.py skins_out ${{ inputs.characters || 'sena' }} ${{ inputs.sources || 'mineskin' }} 2>&1 | tee skins_out/log.txt || true
+          python3 tools/fetch_skins.py skins_out ${{ inputs.characters || 'chris,croupier' }} ${{ inputs.sources || 'mineskin' }} 2>&1 | tee skins_out/log.txt || true
           ls -la skins_out
       - name: Publish candidates
         if: always()
