@@ -49,6 +49,7 @@ public final class ModItems {
 	public static final Item EXPLOSIVE_POTION = register("explosive_potion", new KonoItems.ExplosivePotion(new Item.Settings().maxCount(16)));
 	public static final Item TOAD_RING = register("toad_ring", new KonoItems.ToadRing(new Item.Settings().maxCount(1)));
 	public static final Item AXIS_FORM = register("axis_form", new KonoItems.AxisForm(new Item.Settings().maxCount(64)));
+	public static final Item LUCKY_COIN = register("lucky_coin", new KonoItems.LuckyCoin(new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
 	// Trophies
 	public static final Item BELDIA_HEAD = register("beldia_head", new KonoItems.Trophy(new Item.Settings().maxCount(1).rarity(Rarity.EPIC), "beldia"));

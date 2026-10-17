@@ -398,6 +398,33 @@ public final class KonoItems {
 		}
 	}
 
+	/** Chris's silver coin: toss it for a moment of luck (and it helps at the casino while in your pocket). */
+	public static class LuckyCoin extends Item {
+		public LuckyCoin(Settings settings) {
+			super(settings);
+		}
+
+		@Override
+		public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+			ItemStack stack = user.getStackInHand(hand);
+			if (!world.isClient && user instanceof ServerPlayerEntity sp) {
+				boolean heads = sp.getRandom().nextBoolean();
+				sp.sendMessage(Text.literal(heads ? "Орёл! На монете улыбается богиня с серебряными волосами." : "Решка! Но богиня всё равно подмигнула.")
+					.formatted(Formatting.GOLD), true);
+				sp.addStatusEffect(new StatusEffectInstance(StatusEffects.LUCK, 20 * 180, heads ? 1 : 0));
+				world.playSound(null, sp.getBlockPos(), SoundEvents.BLOCK_AMETHYST_BLOCK_CHIME, SoundCategory.PLAYERS, 1f, 1.6f);
+				sp.getItemCooldownManager().set(this, 20 * 120);
+			}
+			return TypedActionResult.success(stack, world.isClient);
+		}
+
+		@Override
+		public void appendTooltip(ItemStack stack, World world, java.util.List<Text> tooltip, net.minecraft.client.item.TooltipContext context) {
+			tooltip.add(Text.literal("«Спасибо, помощник! — К.»").formatted(Formatting.GRAY, Formatting.ITALIC));
+			tooltip.add(Text.literal("Пока монета в кармане, в казино вам везёт чуть больше.").formatted(Formatting.DARK_AQUA));
+		}
+	}
+
 	public static class AxisForm extends Item {
 		public AxisForm(Settings settings) {
 			super(settings);

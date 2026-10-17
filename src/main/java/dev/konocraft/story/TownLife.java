@@ -150,6 +150,9 @@ public final class TownLife {
 		new Worker(TownsfolkEntity.LORD, "alderp_lord", "Лорд Алдерп", 11, Items.GOLD_INGOT),
 		new Worker(TownsfolkEntity.NOBLE, "ignis", "Лорд Игнис Дастинесс", 12, Items.AIR),
 		new Worker(TownsfolkEntity.MERCHANT, "merchant", "Торговец Хенрик", 13, Items.APPLE),
+		new Worker(TownsfolkEntity.CASINO_OWNER, "casino_owner", "Управляющий Вальтер", 14, Items.GOLD_NUGGET),
+		new Worker(TownsfolkEntity.CROUPIER, "croupier", "Крупье Лили", 15, Items.AIR),
+		new Worker(TownsfolkEntity.CHRIS, "chris", "Крис", 16, Items.AIR),
 	};
 
 	private static void workers(ServerWorld w, List<TownsfolkEntity> folk) {
@@ -157,13 +160,15 @@ public final class TownLife {
 			Locations.Loc l = Locations.get(wk.loc());
 			if (!w.isChunkLoaded((int) Math.floor(l.x()) >> 4, (int) Math.floor(l.z()) >> 4)) continue;
 			boolean present = false;
+			// Chris leaves the casino for good once its secret is out
+			boolean gone = wk.role() == TownsfolkEntity.CHRIS && StoryState.get(w.getServer()).hasFlag("casino_done");
 			for (TownsfolkEntity f : folk) {
 				if (f.getRole() == wk.role()) {
-					if (present) f.discard();
+					if (present || gone) f.discard();
 					present = true;
 				}
 			}
-			if (present) continue;
+			if (present || gone) continue;
 			TownsfolkEntity e = ModEntities.TOWNSFOLK.create(w);
 			if (e == null) continue;
 			e.refreshPositionAndAngles(l.x(), l.y(), l.z(), l.yaw(), 0);

@@ -40,6 +40,7 @@ public final class AxelTown {
 		mansion(b);
 		AxelNobles.build(b);
 		AxelQuarters.build(b);
+		AxelCasino.build(b);
 		TownHouses.buildAll(b);
 		yards(b);
 		lamps(b);

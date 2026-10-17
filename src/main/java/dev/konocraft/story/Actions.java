@@ -49,7 +49,9 @@ public final class Actions {
 			.replace("%level%", String.valueOf(d.level))
 			.replace("%luck%", String.valueOf(d.luck()))
 			.replace("%count%", String.valueOf(state.questCounter))
-			.replace("%death%", Story.deathReason(player));
+			.replace("%death%", Story.deathReason(player))
+			.replace("%casino%", Casino.lastResult(player))
+			.replace("%casino_total%", Progression.formatMoney(d.casinoBalance));
 	}
 
 	// ---------------------------------------------------------------------------------------------
@@ -328,6 +330,9 @@ public final class Actions {
 			case "kill_mobs" -> Cutscenes.killHostilesNear(player, Double.parseDouble(arg));
 			case "keele_purify" -> WorldEvents.purifyKeele(player);
 			case "thief_start" -> Thief.start(player);
+			case "casino_stake" -> Casino.stake(player, Long.parseLong(arg));
+			case "casino_dice" -> Casino.dice(player, arg);
+			case "casino_roulette" -> Casino.roulette(player, arg);
 			case "yunyun_duel" -> Activities.yunyunDuel(player, session, arg);
 			case "party_trick" -> Activities.partyTrick(player);
 			case "rate_explosion" -> Activities.rateExplosion(player, Integer.parseInt(arg));

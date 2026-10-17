@@ -38,7 +38,9 @@ public final class Speakers {
 		Map.entry("alderp", new Speaker("Лорд Алдерп", 0xE0C040)),
 		Map.entry("ignis", new Speaker("Игнис Дастинесс", 0xC0C8E8)),
 		Map.entry("merchant", new Speaker("Хенрик", 0x90C060)),
-		Map.entry("thief", new Speaker("Карманник", 0x80A040))
+		Map.entry("thief", new Speaker("Карманник", 0x80A040)),
+		Map.entry("casino_owner", new Speaker("Управляющий Вальтер", 0xD4A030)),
+		Map.entry("croupier", new Speaker("Крупье Лили", 0xE070A0))
 	);
 
 	private Speakers() {

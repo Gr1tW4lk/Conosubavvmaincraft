@@ -25,6 +25,8 @@ public class PlayerData {
 	public int skillPoints;
 	public float mana;
 	public long money;
+	/** Total won (or, more likely, lost) at the casino. */
+	public long casinoBalance;
 	public final EnumSet<Skill> skills = EnumSet.noneOf(Skill.class);
 	public int selectedSkill;
 	public boolean prologueDone;
@@ -74,6 +76,7 @@ public class PlayerData {
 		nbt.putInt("sp", skillPoints);
 		nbt.putFloat("mana", mana);
 		nbt.putLong("money", money);
+		nbt.putLong("casino", casinoBalance);
 		NbtList skillList = new NbtList();
 		for (Skill s : skills) skillList.add(NbtString.of(s.name()));
 		nbt.put("skills", skillList);
@@ -103,6 +106,7 @@ public class PlayerData {
 		d.skillPoints = nbt.getInt("sp");
 		d.mana = nbt.getFloat("mana");
 		d.money = nbt.getLong("money");
+		d.casinoBalance = nbt.getLong("casino");
 		for (NbtElement e : nbt.getList("skills", NbtElement.STRING_TYPE)) {
 			Skill s = Skill.byName(e.asString());
 			if (s != null) d.skills.add(s);

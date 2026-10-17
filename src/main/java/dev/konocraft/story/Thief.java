@@ -91,7 +91,7 @@ public final class Thief {
 		Locations.Loc best = null;
 		double bd = Double.MAX_VALUE;
 		for (String key : new String[]{"market", "inn", "bath", "smithy", "police", "alderp", "dustiness", "park", "barracks",
-			"warehouses", "guild", "church", "stable", "mansion", "wiz_shop", "axel"}) {
+			"warehouses", "casino", "guild", "church", "stable", "mansion", "wiz_shop", "axel"}) {
 			Locations.Loc l = Locations.get(key);
 			double d = Regions.dist(x, z, l.x(), l.z());
 			if (d < bd) {

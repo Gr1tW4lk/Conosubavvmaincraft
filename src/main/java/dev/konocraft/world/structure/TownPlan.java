@@ -80,6 +80,7 @@ public final class TownPlan {
 		new Landmark("inn", 86, 5, 118, 40), new Landmark("market", -34, 84, 34, 118),
 		new Landmark("barracks", 38, 86, 76, 118), new Landmark("bath", 84, 86, 118, 118),
 		new Landmark("smithy", -97, -28, -84, -5), new Landmark("park", -119, 8, -84, 76),
+		new Landmark("casino", 43, -33, 77, -4),
 	};
 
 	private static byte[] grid;

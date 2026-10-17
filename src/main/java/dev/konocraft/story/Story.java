@@ -72,6 +72,7 @@ public final class Story {
 		Restoration.init();
 		WorldEvents.init();
 		Thief.init();
+		Casino.init();
 		Skills.init();
 		ServerLifecycleEvents.SERVER_STARTED.register(server -> {
 			Dialogues.load();
@@ -256,6 +257,9 @@ public final class Story {
 				case dev.konocraft.entity.TownsfolkEntity.LORD -> "alderp_talk";
 				case dev.konocraft.entity.TownsfolkEntity.NOBLE -> "ignis_talk";
 				case dev.konocraft.entity.TownsfolkEntity.MERCHANT -> "merchant_talk";
+				case dev.konocraft.entity.TownsfolkEntity.CASINO_OWNER -> "casino_owner_talk";
+				case dev.konocraft.entity.TownsfolkEntity.CROUPIER -> "croupier_talk";
+				case dev.konocraft.entity.TownsfolkEntity.CHRIS -> "chris_talk";
 				default -> null;
 			};
 		}
@@ -308,6 +312,11 @@ public final class Story {
 		if (d.flags.contains("thief_active")) {
 			text = text + "\n" + Thief.describe();
 			if (Thief.hintPos() != null) marker = Thief.hintPos();
+		}
+		Objective casino = Casino.objective(player);
+		if (casino != null) {
+			text = text + "\n" + casino.text();
+			marker = casino.loc().vec();
 		}
 		ServerNet.sendObjective(player, text, marker);
 	}

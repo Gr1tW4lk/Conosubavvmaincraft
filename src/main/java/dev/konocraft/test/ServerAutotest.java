@@ -127,6 +127,12 @@ public final class ServerAutotest {
 			BlockPos bedAt = new BlockPos(-88, f1 + 6, -15);
 			check(w.getBlockState(bedAt).isOf(Blocks.GRAY_BED)
 				&& w.getWorldChunk(bedAt).getBlockEntity(bedAt, net.minecraft.world.chunk.WorldChunk.CreationType.CHECK) != null, "beds get their block entity");
+			BlockPos wheel = new BlockPos(dev.konocraft.world.structure.AxelCasino.ROULETTE_X, f1, dev.konocraft.world.structure.AxelCasino.ROULETTE_Z);
+			BlockPos slot = dev.konocraft.world.structure.AxelCasino.SLOT_BUTTONS.get(0);
+			check(w.getBlockState(wheel).isOf(Blocks.GOLD_BLOCK) && w.getBlockState(slot).isOf(Blocks.POLISHED_BLACKSTONE_BUTTON), "casino roulette and slot machines");
+			BlockPos ev = dev.konocraft.world.structure.AxelCasino.EVIDENCE;
+			check(w.getBlockState(ev).isOf(Blocks.CHEST) && w.getBlockEntity(ev) instanceof net.minecraft.block.entity.ChestBlockEntity
+				&& !((net.minecraft.block.entity.ChestBlockEntity) w.getBlockEntity(ev)).isEmpty(), "casino office chest is filled from its loot table");
 			check(!dev.konocraft.story.Thief.quarter(60, -60).isEmpty(), "thief hints: " + dev.konocraft.story.Thief.quarter(60, -60));
 			int dialogues = Dialogues.all().size();
 			check(dialogues > 80 && Dialogues.get("sena_talk") != null && Dialogues.get("guard_talk") != null, "dialogues loaded: " + dialogues);

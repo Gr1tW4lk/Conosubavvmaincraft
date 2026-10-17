@@ -20,11 +20,12 @@ public class TownsfolkEntity extends KonoNpcEntity {
 	/** Skins for ordinary citizens; variant 6 is Keele's. */
 	public static final int VARIANTS = 6;
 	public static final int KEELE_VARIANT = 6;
-	/** All skins: random citizens, Keele, then one per townsperson with a job (7..13). */
-	public static final int SKINS = 14;
+	/** All skins: random citizens, Keele, then one per townsperson with a job (7..16). */
+	public static final int SKINS = 17;
 	public static final int CITIZEN = 0, GUARD = 1, BUILDER = 2, KEELE = 3;
 	/** Townspeople with a job and a fixed place: they stay at their counter all day. */
-	public static final int SMITH = 4, INNKEEPER = 5, BATHKEEPER = 6, POLICE = 7, LORD = 8, NOBLE = 9, MERCHANT = 10;
+	public static final int SMITH = 4, INNKEEPER = 5, BATHKEEPER = 6, POLICE = 7, LORD = 8, NOBLE = 9, MERCHANT = 10,
+		CASINO_OWNER = 11, CROUPIER = 12, CHRIS = 13;
 	/** What the townsfolk is walking to: their front door at night, the guild in the evening... */
 	public static final int GO_NONE = 0, GO_HOME = 1, GO_TAVERN = 2, GO_WORK = 3;
 	private static final TrackedData<Integer> VARIANT = DataTracker.registerData(TownsfolkEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -165,6 +166,9 @@ public class TownsfolkEntity extends KonoNpcEntity {
 		if (role == LORD) return "Стража! СТРАЖА! Этот простолюдин коснулся моего камзола!";
 		if (role == NOBLE) return "Хм. Лалатина говорила, что её друзья... своеобразные.";
 		if (role == MERCHANT) return "Эй-эй! Сначала платят, потом бьют! То есть... вообще не бьют!";
+		if (role == CASINO_OWNER) return "Охрана! Хотя нет, охрана стоит денег. Просто прекратите!";
+		if (role == CROUPIER) return "Ставки на крупье не принимаются!";
+		if (role == CHRIS) return "Ай! Хе-хе, ловко. Но я ловчее. Steal! ...Шучу, шучу.";
 		String[] lines = {"Стража! Тут авантюрист дерётся!", "Ай! Я плачу налоги, между прочим!", "Опять эти авантюристы..."};
 		return lines[random.nextInt(lines.length)];
 	}

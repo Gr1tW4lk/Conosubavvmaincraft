@@ -220,6 +220,13 @@
   ],
   "sena_talk": [
     {
+      "if": "pflag:casino_evidence",
+      "do": [
+        "dialogue casino_arrest"
+      ],
+      "end": true
+    },
+    {
       "if": "pflag:thief_active",
       "s": "sena",
       "t": "Карманник всё ещё на свободе. Мы видели его в переулках — смотрите на метку в задании. И, пожалуйста, без взрывов в жилых кварталах.",

@@ -28,6 +28,9 @@
 | Лорд Алдерп | [MineSkin: king](https://mineskin.org/84a5f2be2c414f23b96610010f50ad50) |
 | Игнис Дастинесс | [MineSkin: noble](https://mineskin.org/c731d6d3223c4274a4d9faa88ddce5d8) |
 | Сена | [MineSkin: Secretary](https://mineskin.org/845a82d9ed4f46618b4c0fcb733985c0) |
+| Управляющий казино Вальтер | [MineSkin: Secretary](https://mineskin.org/63caa68c3bbd49d5837b1738b62c5f4f) |
+| Крупье Лили | [MineSkin: Croupier](https://mineskin.org/8bd1c37adde84d8fbaf455c5d668c217) |
+| Крис | [MineSkin](https://mineskin.org/87c079ffb48d408199be606cdda8dcff) (поиск «silver hair girl») |
 | Торговец Хенрик | [MineSkin: Merchant](https://mineskin.org/17bee1f040104a5b883894c0a03fe53e) |
 
 Скины Бельдии и монстров, все модели, текстуры и звуковые эффекты сделаны для мода с нуля.

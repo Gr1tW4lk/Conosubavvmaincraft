@@ -154,6 +154,8 @@ public final class ClientAutotest {
 		shot("33_inn", tp(105.5, 67.5, 14.5, 0, 15), LOAD);
 		shot("34_street", tp(-30.5, 66.6, 0.5, 90, 0), LOAD);
 		shot("35_lane", tp(-121, 66.6, -60.5, 0, 0), LOAD);
+		shot("37_casino", tp(60.5, 70, 2.5, 180, 12), LOAD);
+		shot("38_casino_hall", tp(60.5, 70.5, -12.5, 180, 25), LOAD);
 		add(10, c -> command(c, tp(0.5, 66, 30.5, 180, 0)));
 		add(LOAD, c -> c.setScreen(new dev.konocraft.client.screen.MapScreen()));
 		add(100, c -> screenshot(c, "36_map"));

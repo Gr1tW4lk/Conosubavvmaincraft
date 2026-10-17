@@ -82,6 +82,11 @@ public final class Locations {
 	public static final Loc BARRACKS = add("barracks", 57.5, 65, 96.5, 180, "Казармы стражи");
 	public static final Loc WAREHOUSES = add("warehouses", 102.5, 65, -10.5, 180, "Склады");
 	public static final Loc MERCHANT = add("merchant", 13.5, 65, 91.5, 90, "Рыночная площадь");
+	public static final Loc CASINO = add("casino", 60.5, 65, -6.5, 180, "Казино «Удача Эрис»");
+	public static final Loc CASINO_OWNER = add("casino_owner", 70.5, 65, -12.5, 0, "Казино «Удача Эрис»");
+	public static final Loc CROUPIER = add("croupier", 58.5, 65, -25.5, 0, "Казино «Удача Эрис»");
+	public static final Loc CHRIS = add("chris", 49.5, 65, -15.5, -90, "Казино «Удача Эрис»");
+	public static final Loc CASINO_OFFICE = add("casino_office", 70.5, 72, -24.5, 180, "Кабинет управляющего казино");
 	public static final Loc NORTH_GATE = ground("north_gate", 0.5, -140.5, 180, "Северные ворота");
 	public static final Loc BELDIA_GATE = ground("beldia_gate", 0.5, -156.5, 0, "Перед северными воротами");
 	public static final Loc SOUTH_GATE = ground("south_gate", 0.5, 138.5, 0, "Южные ворота");

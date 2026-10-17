@@ -26,7 +26,7 @@ import java.util.Map;
  * </ul>
  */
 public final class Dialogues {
-	public static final String[] FILES = {"prologue", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5", "ending", "npcs", "activities", "life", "town"};
+	public static final String[] FILES = {"prologue", "chapter1", "chapter2", "chapter3", "chapter4", "chapter5", "ending", "npcs", "activities", "life", "town", "casino"};
 
 	public record Choice(String text, String label, String cond) {
 	}

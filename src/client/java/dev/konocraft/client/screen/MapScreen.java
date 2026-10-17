@@ -38,7 +38,7 @@ public class MapScreen extends Screen {
 		new Label("graveyard", false), new Label("dungeon", false), new Label("defense_line", false),
 		new Label("guild", true), new Label("wiz_shop", true), new Label("church", true), new Label("stable", true), new Label("mansion", true),
 		new Label("market", true), new Label("inn", true), new Label("bath", true), new Label("smithy", true), new Label("police", true),
-		new Label("alderp", true), new Label("dustiness", true), new Label("park", true), new Label("barracks", true), new Label("warehouses", true),
+		new Label("alderp", true), new Label("dustiness", true), new Label("park", true), new Label("barracks", true), new Label("warehouses", true), new Label("casino", true),
 	};
 
 	private static Identifier texture;
