@@ -52,6 +52,9 @@ public final class Bosses {
 		Entity d = destroyer != null || chapter && ticks % 200 == 0 ? find(server, "destroyer") : null;
 		if (d != null && d.isAlive()) {
 			keepLoaded(world, d.getChunkPos());
+		} else if (destroyer != null && chapter) {
+			// just spawned far away: its chunks are still being generated, so the entity is not
+			// visible yet. Releasing them now would leave it hidden in an unloaded chunk forever.
 		} else if (!forced.isEmpty() || !staleChecked && !Boolean.getBoolean("konocraft.autotest.server")) {
 			staleChecked = true;
 			releaseChunks(world);
