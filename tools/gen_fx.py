@@ -82,8 +82,7 @@ for k in range(6):
 d.ellipse((c - 14, c - 14, c + 14, c + 14), fill=255)
 img = glowify(img, 6, 1.3)
 img = glowify(img, 18, 0.7)
-rgb = Image.merge("RGB", (img, img, img))
-rgb.convert("RGBA").save(os.path.join(OUT, "magic_circle.png"))
+Image.merge("RGBA", (img, img, img, img)).save(os.path.join(OUT, "magic_circle.png"))
 
 # --- shockwave ring 256x256
 S2 = 256
@@ -94,7 +93,7 @@ for y in range(S2):
         r = math.hypot(x - S2 / 2 + 0.5, y - S2 / 2 + 0.5) / (S2 / 2)
         v = math.exp(-((r - 0.86) / 0.07) ** 2) + 0.35 * math.exp(-((r - 0.7) / 0.18) ** 2)
         px[x, y] = max(0, min(255, int(v * 255)))
-Image.merge("RGB", (img, img, img)).convert("RGBA").save(os.path.join(OUT, "shockwave.png"))
+Image.merge("RGBA", (img, img, img, img)).save(os.path.join(OUT, "shockwave.png"))
 
 # --- glow orb 128x128
 S3 = 128
@@ -105,5 +104,31 @@ for y in range(S3):
         r = math.hypot(x - S3 / 2 + 0.5, y - S3 / 2 + 0.5) / (S3 / 2)
         v = max(0.0, 1 - r) ** 2.2 + 0.6 * math.exp(-(r / 0.18) ** 2)
         px[x, y] = max(0, min(255, int(v * 255)))
-Image.merge("RGB", (img, img, img)).convert("RGBA").save(os.path.join(OUT, "glow.png"))
+Image.merge("RGBA", (img, img, img, img)).save(os.path.join(OUT, "glow.png"))
+
+# --- smoke puffs 256x256: a 2x2 atlas of soft billowing blobs, white with alpha (tinted in game)
+T = 128
+atlas = Image.new("RGBA", (2 * T, 2 * T), (0, 0, 0, 0))
+for tile in range(4):
+    dens = Image.new("L", (T, T), 0)
+    dd = ImageDraw.Draw(dens)
+    for _ in range(14):
+        a = rng.random() * 2 * math.pi
+        d = rng.random() ** 0.7 * 30
+        r = rng.uniform(14, 30)
+        x, y = T / 2 + math.cos(a) * d, T / 2 + math.sin(a) * d
+        dd.ellipse((x - r, y - r, x + r, y + r), fill=255)
+    dens = dens.filter(ImageFilter.GaussianBlur(9))
+    shade = Image.new("L", (T, T), 0)
+    sp = shade.load()
+    dp = dens.load()
+    for y in range(T):
+        for x in range(T):
+            n = rng.randint(-14, 14)
+            edge = max(0.0, 1 - math.hypot(x - T / 2, y - T / 2) / (T / 2))
+            dp[x, y] = max(0, min(255, int(dp[x, y] * min(1.0, edge * 2.2)) + (n if dp[x, y] > 20 else 0)))
+            sp[x, y] = max(0, min(255, 225 + n - int(40 * (y / T))))
+    tile_img = Image.merge("RGBA", (shade, shade, shade, dens))
+    atlas.paste(tile_img, ((tile % 2) * T, (tile // 2) * T))
+atlas.save(os.path.join(OUT, "smoke.png"))
 print("fx textures written to", OUT)

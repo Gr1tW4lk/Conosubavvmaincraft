@@ -27,6 +27,7 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import org.joml.Matrix3f;
@@ -49,6 +50,7 @@ public final class ExplosionFx {
 	private static final Identifier CIRCLE = KonoCraft.id("textures/fx/magic_circle.png");
 	private static final Identifier RING = KonoCraft.id("textures/fx/shockwave.png");
 	private static final Identifier GLOW = KonoCraft.id("textures/fx/glow.png");
+	private static final Identifier SMOKE = KonoCraft.id("textures/fx/smoke.png");
 	private static final Identifier BEAM = new Identifier("textures/entity/beacon_beam.png");
 
 	private static final DustParticleEffect CRIMSON = new DustParticleEffect(new Vector3f(1f, 0.1f, 0.08f), 2.2f);
@@ -77,11 +79,31 @@ public final class ExplosionFx {
 		final Vec3d pos;
 		final float scale;
 		final long start;
+		final Puff[] puffs;
 
 		Blast(Vec3d pos, float scale) {
 			this.pos = pos;
 			this.scale = scale;
 			this.start = ticks;
+			this.puffs = Puff.cloud(new java.util.Random(Double.doubleToLongBits(pos.x * 31 + pos.z) ^ ticks));
+		}
+	}
+
+	/** One puff of the mushroom cloud; positions are relative to the stem, the cap or the dust skirt. */
+	private record Puff(int kind, float angle, float dist, float height, float size, float spin, int tile) {
+		static final int STEM = 0, CAP = 1, TOP = 2, SKIRT = 3;
+
+		static Puff[] cloud(java.util.Random r) {
+			List<Puff> list = new ArrayList<>();
+			for (int i = 0; i < 12; i++) list.add(new Puff(STEM, r.nextFloat() * 6.283f, r.nextFloat() * 1.6f, (i + r.nextFloat()) / 12f, 2.6f + r.nextFloat() * 1.6f, spin(r), r.nextInt(4)));
+			for (int i = 0; i < 20; i++) list.add(new Puff(CAP, (i + r.nextFloat() * 0.6f) * 6.283f / 20, 0.55f + r.nextFloat() * 0.4f, (r.nextFloat() - 0.5f) * 3f, 0.38f + r.nextFloat() * 0.14f, spin(r), r.nextInt(4)));
+			for (int i = 0; i < 7; i++) list.add(new Puff(TOP, r.nextFloat() * 6.283f, r.nextFloat() * 0.45f, 1.5f + r.nextFloat() * 3f, 0.45f + r.nextFloat() * 0.15f, spin(r), r.nextInt(4)));
+			for (int i = 0; i < 18; i++) list.add(new Puff(SKIRT, (i + r.nextFloat() * 0.7f) * 6.283f / 18, 0.75f + r.nextFloat() * 0.3f, 0.6f + r.nextFloat() * 1.6f, 3f + r.nextFloat() * 2.5f, spin(r), r.nextInt(4)));
+			return list.toArray(new Puff[0]);
+		}
+
+		private static float spin(java.util.Random r) {
+			return (r.nextFloat() - 0.5f) * 0.04f;
 		}
 	}
 
@@ -284,118 +306,199 @@ public final class ExplosionFx {
 
 	// ---------------------------------------------------------------- geometry
 
+	/** Alpha-blended, unlit: keeps deep colours even against a bright sky. */
+	private static RenderLayer solid(Identifier tex) {
+		return RenderLayer.getEntityTranslucentEmissive(tex);
+	}
+
+	/** Additive light. */
+	private static RenderLayer light(Identifier tex) {
+		return RenderLayer.getEyes(tex);
+	}
+
+	private static float capY(float age, float s) {
+		return Math.min(34 * s, 10 + age * 1.4f * s);
+	}
+
+	private static float capR(float age, float s) {
+		return Math.min(15 * s, 3 + age * 0.45f * s);
+	}
+
 	private static void render(WorldRenderContext ctx) {
 		if (charges.isEmpty() && blasts.isEmpty()) return;
 		MatrixStack m = ctx.matrixStack();
 		Camera cam = ctx.camera();
 		Vec3d cp = cam.getPos();
-		float td = ctx.tickDelta();
-		double now = ticks + td;
+		double now = ticks + ctx.tickDelta();
 
-		// magic circles
-		VertexConsumer vc = BUFFERS.getBuffer(RenderLayer.getEyes(CIRCLE));
-		for (Charge c : charges) {
-			float f = (float) ((now - c.start) / c.duration);
-			float grow = Math.min(1, f * 3.5f);
-			float pulse = 0.85f + 0.15f * MathHelper.sin((float) now * (0.4f + f));
-			float flicker = f > 0.85f ? 0.7f + 0.3f * RAND.nextFloat() : 1;
-			float a = Math.min(1, f * 4) * pulse * flicker;
-			float rot = (float) now * (0.02f + f * 0.06f);
-			m.push();
-			m.translate(c.pos.x - cp.x, c.pos.y - cp.y, c.pos.z - cp.z);
-			flat(m, vc, c.radius * grow, 0.06f, rot, 1f, 0.22f, 0.1f, a);
-			flat(m, vc, c.radius * grow * 1.06f, 0.08f, -rot * 0.5f, 1f, 0.45f, 0.1f, a * 0.35f);
-			float mid = MathHelper.clamp((f - 0.2f) * 4, 0, 1);
-			if (mid > 0) flat(m, vc, c.radius * 0.7f * mid, 4.5f, -rot * 1.6f, 1f, 0.3f, 0.15f, a * mid);
-			float top = MathHelper.clamp((f - 0.45f) * 4, 0, 1);
-			if (top > 0) flat(m, vc, c.radius * 0.45f * top, 9f, rot * 2.4f, 1f, 0.5f, 0.2f, a * top);
-			m.pop();
-		}
-		// the spent circle burns out after the blast
-		for (Blast b : blasts) {
-			float age = (float) (now - b.start);
-			if (age > 20) continue;
-			float a = 1 - age / 20f;
-			m.push();
-			m.translate(b.pos.x - cp.x, b.pos.y - cp.y, b.pos.z - cp.z);
-			flat(m, vc, 6.5f * b.scale * (1 + age * 0.05f), 0.06f, age * 0.1f, 1f, 0.6f, 0.3f, a);
-			m.pop();
-		}
-
-		// beams of light
-		vc = BUFFERS.getBuffer(RenderLayer.getEyes(BEAM));
+		// --- alpha-blended layers: the crimson body of circles and beams, the smoke cloud, the orange haze
+		VertexConsumer vc = BUFFERS.getBuffer(solid(CIRCLE));
+		for (Charge c : charges) circles(m, cp, vc, c, now, false);
+		vc = BUFFERS.getBuffer(solid(BEAM));
 		for (Charge c : charges) {
 			float f = (float) ((now - c.start) / c.duration);
 			if (f < 0.5f) continue;
 			float k = MathHelper.clamp((f - 0.5f) * 2.5f, 0, 1);
-			m.push();
-			m.translate(c.pos.x - cp.x, c.pos.y - cp.y, c.pos.z - cp.z);
-			beam(m, vc, 0.25f + 0.35f * k, 90, (float) now, 1f, 0.2f, 0.12f, k);
-			beam(m, vc, 0.6f + 0.9f * k, 90, (float) now * 0.5f, 1f, 0.15f, 0.08f, k * 0.35f);
+			at(m, cp, c.pos, 0);
+			beam(m, vc, 0.3f + 0.4f * k, 90, (float) now, 0.85f, 0.04f, 0.04f, k * 0.9f, false);
+			beam(m, vc, 0.7f + 1.0f * k, 90, (float) now * 0.5f, 0.9f, 0.1f, 0.05f, k * 0.35f, false);
+			m.pop();
+		}
+		vc = BUFFERS.getBuffer(solid(SMOKE));
+		for (Blast b : blasts) cloud(m, cam, cp, vc, b, (float) (now - b.start));
+		vc = BUFFERS.getBuffer(solid(GLOW));
+		for (Blast b : blasts) {
+			float age = (float) (now - b.start);
+			if (age >= 70) continue;
+			float s = b.scale;
+			float fade = age < 10 ? 1 : 1 - (age - 10) / 60f;
+			at(m, cp, b.pos, 4 + age * 0.25f);
+			billboard(m, cam, vc, (24 + age * 0.8f) * s, 1f, 0.42f, 0.08f, fade * 0.45f, false);
+			m.pop();
+			at(m, cp, b.pos, capY(age, s) - 2);
+			billboard(m, cam, vc, capR(age, s) * 1.8f, 1f, 0.35f, 0.05f, fade * 0.4f, false);
+			m.pop();
+		}
+
+		// --- additive light on top
+		vc = BUFFERS.getBuffer(light(CIRCLE));
+		for (Charge c : charges) circles(m, cp, vc, c, now, true);
+		for (Blast b : blasts) {
+			// the spent circle burns out after the blast
+			float age = (float) (now - b.start);
+			if (age > 20) continue;
+			at(m, cp, b.pos, 0);
+			flat(m, vc, 6.5f * b.scale * (1 + age * 0.05f), 0.06f, age * 0.1f, 1f, 0.6f, 0.3f, 1 - age / 20f, true);
+			m.pop();
+		}
+		vc = BUFFERS.getBuffer(light(BEAM));
+		for (Charge c : charges) {
+			float f = (float) ((now - c.start) / c.duration);
+			if (f < 0.5f) continue;
+			float k = MathHelper.clamp((f - 0.5f) * 2.5f, 0, 1);
+			at(m, cp, c.pos, 0);
+			beam(m, vc, 0.12f + 0.12f * k, 90, (float) now * 1.5f, 1f, 0.45f, 0.3f, k * 0.8f, true);
 			m.pop();
 		}
 		for (Blast b : blasts) {
 			float age = (float) (now - b.start);
 			if (age > 24) continue;
 			float a = 1 - age / 24f;
-			m.push();
-			m.translate(b.pos.x - cp.x, b.pos.y - cp.y, b.pos.z - cp.z);
-			beam(m, vc, (3.2f - age * 0.1f) * b.scale, 160, (float) now * 2, 1f, 0.95f, 0.8f, a);
-			beam(m, vc, (6f + age * 0.2f) * b.scale, 160, (float) now, 1f, 0.4f, 0.1f, a * 0.5f);
+			at(m, cp, b.pos, 0);
+			beam(m, vc, (3.2f - age * 0.1f) * b.scale, 160, (float) now * 2, 1f, 0.95f, 0.8f, a, true);
+			beam(m, vc, (6f + age * 0.2f) * b.scale, 160, (float) now, 1f, 0.4f, 0.1f, a * 0.5f, true);
 			m.pop();
 		}
-
-		// shock waves
-		vc = BUFFERS.getBuffer(RenderLayer.getEyes(RING));
+		vc = BUFFERS.getBuffer(light(RING));
 		for (Blast b : blasts) {
 			float age = (float) (now - b.start);
-			m.push();
-			m.translate(b.pos.x - cp.x, b.pos.y - cp.y, b.pos.z - cp.z);
+			at(m, cp, b.pos, 0);
 			ring(m, vc, age, 0, 0.3f, 4.2f, 30, b.scale, 1f, 0.85f, 0.6f);
 			ring(m, vc, age, 4, 0.6f, 3f, 34, b.scale, 1f, 0.45f, 0.15f);
 			ring(m, vc, age, 8, 24f, 1.1f, 40, b.scale, 0.9f, 0.5f, 0.3f);
 			m.pop();
 		}
-
-		// fireball, heat glow and the burning crater
-		vc = BUFFERS.getBuffer(RenderLayer.getEyes(GLOW));
+		vc = BUFFERS.getBuffer(light(GLOW));
 		for (Charge c : charges) {
 			float f = (float) ((now - c.start) / c.duration);
-			float size = 1.5f + f * f * 5f;
-			m.push();
-			m.translate(c.pos.x - cp.x, c.pos.y + 1.5 - cp.y, c.pos.z - cp.z);
-			billboard(m, cam, vc, size, 1f, 0.25f, 0.12f, Math.min(1, f * 2));
+			at(m, cp, c.pos, 1.5);
+			billboard(m, cam, vc, 1.5f + f * f * 5f, 1f, 0.25f, 0.12f, Math.min(1, f * 2), true);
 			m.pop();
 		}
 		for (Blast b : blasts) {
 			float age = (float) (now - b.start);
 			float s = b.scale;
-			m.push();
-			m.translate(b.pos.x - cp.x, b.pos.y - cp.y, b.pos.z - cp.z);
 			if (age < 60) {
+				// white-hot core cooling down to deep red
 				float grow = Math.min(1, age / 5f);
 				float fade = age < 10 ? 1 : 1 - (age - 10) / 50f;
-				float size = (10 + age * 0.35f) * s * grow;
 				float t = Math.min(1, age / 30f);
-				// white-hot core cooling down to deep red
-				m.push();
-				m.translate(0, 4 + age * 0.25f, 0);
-				billboard(m, cam, vc, size, 1f, 1f - 0.55f * t, 0.8f - 0.75f * t, fade);
-				billboard(m, cam, vc, size * 2.4f, 1f, 0.35f, 0.08f, fade * 0.6f);
-				if (age < 8) billboard(m, cam, vc, 60 * s, 1f, 0.9f, 0.75f, 1 - age / 8f);
-				m.pop();
-				// glowing cap of the mushroom
-				float capY = Math.min(34 * s, 10 + age * 1.4f * s);
-				m.push();
-				m.translate(0, capY, 0);
-				billboard(m, cam, vc, Math.min(15 * s, 3 + age * 0.45f * s) * 2.2f, 1f, 0.3f, 0.05f, fade * 0.45f);
+				at(m, cp, b.pos, 4 + age * 0.25f);
+				billboard(m, cam, vc, (10 + age * 0.35f) * s * grow, 1f, 1f - 0.55f * t, 0.8f - 0.75f * t, fade, true);
+				if (age < 8) billboard(m, cam, vc, 60 * s, 1f, 0.9f, 0.75f, 1 - age / 8f, true);
 				m.pop();
 			}
 			float crater = age < 6 ? age / 6f : 1 - (age - 6) / (BLAST_LIFE - 6f);
-			flat(m, vc, 11 * s, 0.1f, 0, 1f, 0.35f, 0.05f, crater * (0.75f + 0.25f * MathHelper.sin(age * 0.5f)));
+			at(m, cp, b.pos, 0);
+			flat(m, vc, 11 * s, 0.1f, 0, 1f, 0.35f, 0.05f, crater * (0.75f + 0.25f * MathHelper.sin(age * 0.5f)), true);
 			m.pop();
 		}
 		BUFFERS.draw();
+	}
+
+	/** Pushes a matrix placed at {@code pos} (plus {@code dy}) relative to the camera; pop it afterwards. */
+	private static void at(MatrixStack m, Vec3d cp, Vec3d pos, double dy) {
+		m.push();
+		m.translate(pos.x - cp.x, pos.y + dy - cp.y, pos.z - cp.z);
+	}
+
+	/** Three stacked magic circles turning against each other; they light up one after another. */
+	private static void circles(MatrixStack m, Vec3d cp, VertexConsumer vc, Charge c, double now, boolean additive) {
+		float f = (float) ((now - c.start) / c.duration);
+		float grow = Math.min(1, f * 3.5f);
+		float pulse = 0.85f + 0.15f * MathHelper.sin((float) now * (0.4f + f));
+		float flicker = f > 0.85f ? 0.7f + 0.3f * RAND.nextFloat() : 1;
+		float a = Math.min(1, f * 4) * pulse * flicker;
+		float rot = (float) now * (0.02f + f * 0.06f);
+		float mid = MathHelper.clamp((f - 0.2f) * 4, 0, 1);
+		float top = MathHelper.clamp((f - 0.45f) * 4, 0, 1);
+		at(m, cp, c.pos, 0);
+		if (additive) {
+			flat(m, vc, c.radius * grow, 0.07f, rot, 1f, 0.35f, 0.15f, a * 0.6f, true);
+			flat(m, vc, c.radius * grow * 1.06f, 0.09f, -rot * 0.5f, 1f, 0.45f, 0.1f, a * 0.3f, true);
+			if (mid > 0) flat(m, vc, c.radius * 0.7f * mid, 4.5f, -rot * 1.6f, 1f, 0.35f, 0.15f, a * mid * 0.5f, true);
+			if (top > 0) flat(m, vc, c.radius * 0.45f * top, 9f, rot * 2.4f, 1f, 0.5f, 0.2f, a * top * 0.5f, true);
+		} else {
+			flat(m, vc, c.radius * grow, 0.06f, rot, 0.9f, 0.05f, 0.04f, a, false);
+			if (mid > 0) flat(m, vc, c.radius * 0.7f * mid, 4.5f, -rot * 1.6f, 0.9f, 0.06f, 0.05f, a * mid, false);
+			if (top > 0) flat(m, vc, c.radius * 0.45f * top, 9f, rot * 2.4f, 0.95f, 0.15f, 0.05f, a * top, false);
+		}
+		m.pop();
+	}
+
+	/** The mushroom cloud: a stem, a rolling cap and a dust skirt of soft puffs, fire-lit at first, then soot. */
+	private static void cloud(MatrixStack m, Camera cam, Vec3d cp, VertexConsumer vc, Blast b, float age) {
+		if (age < 4) return;
+		float s = b.scale;
+		float capY = capY(age, s), capR = capR(age, s);
+		float skirtR = (3 + 18 * (1 - (float) Math.exp(-age / 16f))) * s;
+		float heat = MathHelper.clamp((age - 6) / 45f, 0, 1);
+		float in = MathHelper.clamp((age - 4) / 6f, 0, 1);
+		float out = MathHelper.clamp((BLAST_LIFE - age) / 45f, 0, 1);
+		float grow = 1 + age * 0.006f;
+		at(m, cp, b.pos, 0);
+		for (Puff p : b.puffs) {
+			float cs = MathHelper.cos(p.angle), sn = MathHelper.sin(p.angle);
+			float x, y, z, size, alpha = 0.92f * in * out, fire = 1 - heat;
+			switch (p.kind) {
+				case Puff.STEM -> {
+					float d = p.dist * s * (1 + 0.4f * p.height);
+					x = cs * d;
+					z = sn * d;
+					y = p.height * capY;
+					size = p.size * s * (0.8f + 0.5f * p.height) * grow;
+					fire = 1 - heat * (0.6f + 0.3f * p.height);
+				}
+				case Puff.CAP, Puff.TOP -> {
+					x = cs * p.dist * capR;
+					z = sn * p.dist * capR;
+					y = capY + p.height * s;
+					size = Math.max(2.5f, p.size * capR) * grow;
+					// the underside of the cap keeps glowing longer
+					if (p.kind == Puff.CAP && p.height < 0) fire = 1 - heat * 0.7f;
+				}
+				default -> {
+					x = cs * p.dist * skirtR;
+					z = sn * p.dist * skirtR;
+					y = p.height * s;
+					size = p.size * s * grow;
+					alpha *= 0.7f * MathHelper.clamp((100 - age) / 40f, 0, 1);
+				}
+			}
+			float r = MathHelper.lerp(fire, 0.27f, 1f), g = MathHelper.lerp(fire, 0.24f, 0.55f), bl = MathHelper.lerp(fire, 0.23f, 0.16f);
+			puff(m, cam, vc, x, y, z, size, p.angle + p.spin * age, p.tile, r, g, bl, alpha);
+		}
+		m.pop();
 	}
 
 	private static void ring(MatrixStack m, VertexConsumer vc, float age, float delay, float y, float speed, float life, float scale, float r, float g, float b) {
@@ -403,11 +506,14 @@ public final class ExplosionFx {
 		if (t < 0 || t > life) return;
 		float radius = (2 + t * speed) * scale;
 		float a = (1 - t / life);
-		flat(m, vc, radius, y, 0, r, g, b, a * a);
+		flat(m, vc, radius, y, 0, r, g, b, a * a, true);
 	}
 
-	/** A horizontal textured square of half-size {@code r}, turned by {@code angle}, seen from above and below. */
-	private static void flat(MatrixStack m, VertexConsumer vc, float r, float y, float angle, float red, float green, float blue, float alpha) {
+	/**
+	 * A horizontal textured square of half-size {@code r}, turned by {@code angle}. Additive quads get the alpha
+	 * folded into their colour and both windings (the eyes layer culls back faces); blended ones keep it as alpha.
+	 */
+	private static void flat(MatrixStack m, VertexConsumer vc, float r, float y, float angle, float red, float green, float blue, float alpha, boolean additive) {
 		if (alpha <= 0.01f || r <= 0.01f) return;
 		Matrix4f pos = m.peek().getPositionMatrix();
 		Matrix3f nrm = m.peek().getNormalMatrix();
@@ -416,37 +522,59 @@ public final class ExplosionFx {
 		float[] zs = {-sn - cs, sn - cs, sn + cs, -sn + cs};
 		float[] us = {0, 1, 1, 0}, vs = {0, 0, 1, 1};
 		float k = MathHelper.clamp(alpha, 0, 1);
-		for (int i = 0; i < 4; i++) vert(vc, pos, nrm, xs[i], y, zs[i], us[i], vs[i], red * k, green * k, blue * k);
-		for (int i = 3; i >= 0; i--) vert(vc, pos, nrm, xs[i], y, zs[i], us[i], vs[i], red * k, green * k, blue * k);
+		float cr = additive ? red * k : red, cg = additive ? green * k : green, cb = additive ? blue * k : blue, ca = additive ? 1 : k;
+		for (int i = 0; i < 4; i++) vert(vc, pos, nrm, xs[i], y, zs[i], us[i], vs[i], cr, cg, cb, ca);
+		if (additive) for (int i = 3; i >= 0; i--) vert(vc, pos, nrm, xs[i], y, zs[i], us[i], vs[i], cr, cg, cb, ca);
 	}
 
 	/** A square of half-size {@code r} always facing the camera. */
-	private static void billboard(MatrixStack m, Camera cam, VertexConsumer vc, float r, float red, float green, float blue, float alpha) {
+	private static void billboard(MatrixStack m, Camera cam, VertexConsumer vc, float r, float red, float green, float blue, float alpha, boolean additive) {
 		if (alpha <= 0.01f || r <= 0.01f) return;
 		m.push();
 		m.multiply(cam.getRotation());
 		Matrix4f pos = m.peek().getPositionMatrix();
 		Matrix3f nrm = m.peek().getNormalMatrix();
 		float k = MathHelper.clamp(alpha, 0, 1);
-		float cr = red * k, cg = green * k, cb = blue * k;
-		vert(vc, pos, nrm, -r, -r, 0, 0, 1, cr, cg, cb);
-		vert(vc, pos, nrm, r, -r, 0, 1, 1, cr, cg, cb);
-		vert(vc, pos, nrm, r, r, 0, 1, 0, cr, cg, cb);
-		vert(vc, pos, nrm, -r, r, 0, 0, 0, cr, cg, cb);
-		vert(vc, pos, nrm, -r, r, 0, 0, 0, cr, cg, cb);
-		vert(vc, pos, nrm, r, r, 0, 1, 0, cr, cg, cb);
-		vert(vc, pos, nrm, r, -r, 0, 1, 1, cr, cg, cb);
-		vert(vc, pos, nrm, -r, -r, 0, 0, 1, cr, cg, cb);
+		float cr = additive ? red * k : red, cg = additive ? green * k : green, cb = additive ? blue * k : blue, ca = additive ? 1 : k;
+		vert(vc, pos, nrm, -r, -r, 0, 0, 1, cr, cg, cb, ca);
+		vert(vc, pos, nrm, r, -r, 0, 1, 1, cr, cg, cb, ca);
+		vert(vc, pos, nrm, r, r, 0, 1, 0, cr, cg, cb, ca);
+		vert(vc, pos, nrm, -r, r, 0, 0, 0, cr, cg, cb, ca);
+		if (additive) {
+			vert(vc, pos, nrm, -r, r, 0, 0, 0, cr, cg, cb, ca);
+			vert(vc, pos, nrm, r, r, 0, 1, 0, cr, cg, cb, ca);
+			vert(vc, pos, nrm, r, -r, 0, 1, 1, cr, cg, cb, ca);
+			vert(vc, pos, nrm, -r, -r, 0, 0, 1, cr, cg, cb, ca);
+		}
 		m.pop();
 	}
 
-	/** A vertical column of light with a scrolling beacon texture. */
-	private static void beam(MatrixStack m, VertexConsumer vc, float width, float height, float time, float red, float green, float blue, float alpha) {
+	/** One smoke puff from the 2x2 atlas, facing the camera and slowly rolling. */
+	private static void puff(MatrixStack m, Camera cam, VertexConsumer vc, float x, float y, float z, float r, float roll, int tile, float red, float green, float blue, float alpha) {
+		if (alpha <= 0.01f || r <= 0.01f) return;
+		m.push();
+		m.translate(x, y, z);
+		m.multiply(cam.getRotation());
+		m.multiply(RotationAxis.POSITIVE_Z.rotation(roll));
+		Matrix4f pos = m.peek().getPositionMatrix();
+		Matrix3f nrm = m.peek().getNormalMatrix();
+		float u0 = (tile & 1) * 0.5f, v0 = (tile >> 1) * 0.5f, u1 = u0 + 0.5f, v1 = v0 + 0.5f;
+		float a = MathHelper.clamp(alpha, 0, 1);
+		vert(vc, pos, nrm, -r, -r, 0, u0, v1, red, green, blue, a);
+		vert(vc, pos, nrm, r, -r, 0, u1, v1, red, green, blue, a);
+		vert(vc, pos, nrm, r, r, 0, u1, v0, red, green, blue, a);
+		vert(vc, pos, nrm, -r, r, 0, u0, v0, red, green, blue, a);
+		m.pop();
+	}
+
+	/** A vertical column of light with a scrolling beacon texture, fading towards the top. */
+	private static void beam(MatrixStack m, VertexConsumer vc, float width, float height, float time, float red, float green, float blue, float alpha, boolean additive) {
 		if (alpha <= 0.01f || width <= 0.01f) return;
 		Matrix4f pos = m.peek().getPositionMatrix();
 		Matrix3f nrm = m.peek().getNormalMatrix();
 		float k = MathHelper.clamp(alpha, 0, 1);
-		float cr = red * k, cg = green * k, cb = blue * k;
+		float cr = additive ? red * k : red, cg = additive ? green * k : green, cb = additive ? blue * k : blue;
+		float ca = additive ? 1 : k, topA = additive ? 1 : k * 0.2f, top = additive ? 0.2f : 1;
 		float v0 = -time * 0.08f, v1 = v0 + height / 6f;
 		int sides = 8;
 		for (int i = 0; i < sides; i++) {
@@ -454,19 +582,21 @@ public final class ExplosionFx {
 			float x0 = MathHelper.cos(a0) * width, z0 = MathHelper.sin(a0) * width;
 			float x1 = MathHelper.cos(a1) * width, z1 = MathHelper.sin(a1) * width;
 			float u0 = (float) i / sides, u1 = (float) (i + 1) / sides;
-			vert(vc, pos, nrm, x0, 0, z0, u0, v1, cr, cg, cb);
-			vert(vc, pos, nrm, x1, 0, z1, u1, v1, cr, cg, cb);
-			vert(vc, pos, nrm, x1, height, z1, u1, v0, cr * 0.2f, cg * 0.2f, cb * 0.2f);
-			vert(vc, pos, nrm, x0, height, z0, u0, v0, cr * 0.2f, cg * 0.2f, cb * 0.2f);
-			vert(vc, pos, nrm, x0, height, z0, u0, v0, cr * 0.2f, cg * 0.2f, cb * 0.2f);
-			vert(vc, pos, nrm, x1, height, z1, u1, v0, cr * 0.2f, cg * 0.2f, cb * 0.2f);
-			vert(vc, pos, nrm, x1, 0, z1, u1, v1, cr, cg, cb);
-			vert(vc, pos, nrm, x0, 0, z0, u0, v1, cr, cg, cb);
+			vert(vc, pos, nrm, x0, 0, z0, u0, v1, cr, cg, cb, ca);
+			vert(vc, pos, nrm, x1, 0, z1, u1, v1, cr, cg, cb, ca);
+			vert(vc, pos, nrm, x1, height, z1, u1, v0, cr * top, cg * top, cb * top, topA);
+			vert(vc, pos, nrm, x0, height, z0, u0, v0, cr * top, cg * top, cb * top, topA);
+			if (additive) {
+				vert(vc, pos, nrm, x0, height, z0, u0, v0, cr * top, cg * top, cb * top, topA);
+				vert(vc, pos, nrm, x1, height, z1, u1, v0, cr * top, cg * top, cb * top, topA);
+				vert(vc, pos, nrm, x1, 0, z1, u1, v1, cr, cg, cb, ca);
+				vert(vc, pos, nrm, x0, 0, z0, u0, v1, cr, cg, cb, ca);
+			}
 		}
 	}
 
-	private static void vert(VertexConsumer vc, Matrix4f pos, Matrix3f nrm, float x, float y, float z, float u, float v, float r, float g, float b) {
-		vc.vertex(pos, x, y, z).color(r, g, b, 1f).texture(u, v).overlay(OverlayTexture.DEFAULT_UV)
+	private static void vert(VertexConsumer vc, Matrix4f pos, Matrix3f nrm, float x, float y, float z, float u, float v, float r, float g, float b, float a) {
+		vc.vertex(pos, x, y, z).color(r, g, b, a).texture(u, v).overlay(OverlayTexture.DEFAULT_UV)
 				.light(LightmapTextureManager.MAX_LIGHT_COORDINATE).normal(nrm, 0, 1, 0).next();
 	}
 }
