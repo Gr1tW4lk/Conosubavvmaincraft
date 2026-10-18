@@ -43,6 +43,6 @@ jobs:
             gh release create "$TAG" "$@" --latest \
               --title "KonoCraft $VER — KonoSuba для Minecraft 1.20.1" \
               --notes-file .github/release-notes.md \
-              build/libs/*.jar CREDITS.md
+              build/libs/*.jar CREDITS.md extras/mods/*.jar
           }
           create --target "$GITHUB_SHA" || create

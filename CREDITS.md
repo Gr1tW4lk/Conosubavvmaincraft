@@ -51,3 +51,9 @@
 | Финал | «Fluffing a Duck», «Monkeys Spinning Monkeys», «Carefree» |
 
 "Title" Kevin MacLeod (incompetech.com). Licensed under Creative Commons: By Attribution 4.0 License. http://creativecommons.org/licenses/by/4.0/
+
+## Моды для шейдеров (выкладываются рядом с релизом без изменений)
+
+- **Sodium** 0.5.13 (CaffeineMC): PolyForm Shield 1.0.0, https://polyformproject.org/licenses/shield/1.0.0, исходники: https://github.com/CaffeineMC/sodium
+- **Iris** 1.7.6 (IrisShaders): GNU LGPL-3.0, исходники: https://github.com/IrisShaders/Iris
+- Шейдер **Complementary Unbound** (EminGT) не перезаливается; скачивайте его с https://www.complementary.dev/ или https://modrinth.com/shader/complementary-unbound

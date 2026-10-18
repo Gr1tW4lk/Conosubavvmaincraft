@@ -2,6 +2,8 @@ package dev.konocraft.client;
 
 import net.minecraft.util.math.Vec3d;
 
+import net.minecraft.text.Text;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +30,10 @@ public final class ClientState {
 
 	public static String music = "";
 
+	public static Text title, subtitle;
+	public static int titleTicks, titleFadeIn, titleStay, titleFadeOut;
+	/** Orange glow of a nearby explosion fading out over the screen. */
+	public static int heatTicks, heatMax = 1;
 	public static int flashTicks;
 	public static int flashMax = 1;
 	public static int shakeTicks;

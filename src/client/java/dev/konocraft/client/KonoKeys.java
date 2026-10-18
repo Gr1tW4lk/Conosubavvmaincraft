@@ -23,7 +23,34 @@ public final class KonoKeys {
 		KeyBindingHelper.registerKeyBinding(MAP);
 	}
 
+	private static boolean conflictsChecked;
+
+	/**
+	 * Iris binds R (reload shaders) and K (toggle shaders) by default. A key drives only one binding, so
+	 * unless the player changed them, those two are unbound to keep casting and the card working.
+	 */
+	private static void freeConflicts(MinecraftClient mc) {
+		conflictsChecked = true;
+		KeyBinding[] ours = {CAST, NEXT_SKILL, CARD, MAP};
+		boolean changed = false;
+		for (KeyBinding other : mc.options.allKeys) {
+			if (!other.getTranslationKey().startsWith("iris.") || !other.isDefault() || other.isUnbound()) continue;
+			for (KeyBinding k : ours) {
+				if (other.equals(k)) {
+					other.setBoundKey(InputUtil.UNKNOWN_KEY);
+					changed = true;
+					break;
+				}
+			}
+		}
+		if (changed) {
+			KeyBinding.updateKeysByCode();
+			mc.options.write();
+		}
+	}
+
 	public static void tick(MinecraftClient mc) {
+		if (!conflictsChecked && mc.options != null) freeConflicts(mc);
 		if (mc.player == null) return;
 		while (CAST.wasPressed()) ClientNet.castSkill();
 		while (NEXT_SKILL.wasPressed()) ClientNet.selectSkill(1, false);

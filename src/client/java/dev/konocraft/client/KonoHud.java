@@ -98,15 +98,72 @@ public final class KonoHud {
 			ctx.fill(0, 0, w, bar, 0xFF000000);
 			ctx.fill(0, h - bar, w, h, 0xFF000000);
 		}
+		if (ClientState.heatTicks > 0) {
+			float a = (float) ClientState.heatTicks / ClientState.heatMax;
+			ctx.fill(0, 0, w, h, ((int) (a * a * 110) << 24) | 0xFF5A1E);
+		}
 		if (ClientState.flashTicks > 0) {
 			float a = (float) ClientState.flashTicks / ClientState.flashMax;
 			int alpha = (int) (Math.min(1f, a * 1.4f) * 230);
 			ctx.fill(0, 0, w, h, (alpha << 24) | 0xFFF4E0);
 		}
+		title(ctx, mc, w, h);
+	}
+
+	/** Centre-screen title: as big as the window allows, wrapped instead of running off the screen. */
+	private static void title(DrawContext ctx, MinecraftClient mc, int w, int h) {
+		if (ClientState.titleTicks <= 0 || ClientState.title == null) return;
+		TextRenderer tr = mc.textRenderer;
+		int t = ClientState.titleTicks, in = ClientState.titleFadeIn, out = ClientState.titleFadeOut;
+		int total = in + ClientState.titleStay + out;
+		int age = total - t;
+		float alpha = age < in ? (float) age / Math.max(1, in) : t < out ? (float) t / Math.max(1, out) : 1f;
+		int a = (int) (alpha * 255);
+		if (a < 8) return;
+		int color = (a << 24) | 0xFFFFFF;
+		int avail = w - 24;
+		// title
+		int tw = Math.max(1, tr.getWidth(ClientState.title));
+		float scale = Math.min(4f, (float) avail / tw);
+		List<OrderedText> lines;
+		if (scale < 1.8f) {
+			scale = 1.8f;
+			lines = tr.wrapLines(ClientState.title, (int) (avail / scale));
+		} else {
+			lines = List.of(ClientState.title.asOrderedText());
+		}
+		int blockH = (int) (lines.size() * 10 * scale);
+		float y = h / 2f - blockH - 4;
+		for (OrderedText line : lines) {
+			ctx.getMatrices().push();
+			ctx.getMatrices().translate(w / 2f, y, 0);
+			ctx.getMatrices().scale(scale, scale, 1);
+			ctx.drawTextWithShadow(tr, line, -tr.getWidth(line) / 2, 0, color);
+			ctx.getMatrices().pop();
+			y += 10 * scale;
+		}
+		// subtitle: twice as small, up to three lines
+		if (ClientState.subtitle != null && !ClientState.subtitle.getString().isEmpty()) {
+			float s = Math.min(2f, (float) avail / Math.max(1, tr.getWidth(ClientState.subtitle)));
+			if (s < 1.25f) s = 1.25f;
+			List<OrderedText> sub = tr.wrapLines(ClientState.subtitle, (int) (avail / s));
+			if (sub.size() > 3) sub = sub.subList(0, 3);
+			float sy = h / 2f + 6;
+			for (OrderedText line : sub) {
+				ctx.getMatrices().push();
+				ctx.getMatrices().translate(w / 2f, sy, 0);
+				ctx.getMatrices().scale(s, s, 1);
+				ctx.drawTextWithShadow(tr, line, -tr.getWidth(line) / 2, 0, color);
+				ctx.getMatrices().pop();
+				sy += 10 * s;
+			}
+		}
 	}
 
 	public static void tick(MinecraftClient mc) {
 		if (ClientState.flashTicks > 0) ClientState.flashTicks--;
+		if (ClientState.heatTicks > 0) ClientState.heatTicks--;
+		if (ClientState.titleTicks > 0) ClientState.titleTicks--;
 		if (ClientState.letterboxTicks > 0) ClientState.letterboxTicks--;
 		Shake.tick(mc);
 	}

@@ -10,7 +10,11 @@ import net.minecraft.text.Text;
 
 /** The adventurer card: stats, known skills (pick the active one) and skills you can learn. */
 public class CardScreen extends Screen {
-	private static final int W = 360, H = 244;
+	private static final int ROW = 18, LIST_TOP = 118;
+	private int W = 360, H = 244;
+	private final java.util.List<KonoButton> known = new java.util.ArrayList<>();
+	private final java.util.List<KonoButton> learn = new java.util.ArrayList<>();
+	private int knownScroll, learnScroll;
 
 	public CardScreen() {
 		super(Text.literal("Карта авантюриста"));
@@ -21,42 +25,93 @@ public class CardScreen extends Screen {
 		init();
 	}
 
+	private int listBottom() {
+		return (height - H) / 2 + H - 34;
+	}
+
+	private int visibleRows() {
+		return Math.max(1, (listBottom() - ((height - H) / 2 + LIST_TOP)) / ROW);
+	}
+
 	@Override
 	protected void init() {
-		int x0 = (width - W) / 2, y0 = (height - H) / 2;
-		// Known skills: click to make active
-		int y = y0 + 118;
+		// the card fits any window and GUI scale: long skill lists scroll instead of spilling out
+		W = Math.min(380, width - 16);
+		int rows = Math.max(ClientState.skills.size(), ClientState.learnable.size());
+		H = Math.max(200, Math.min(height - 12, LIST_TOP + 34 + Math.max(3, rows) * ROW + 4));
+		int x0 = (width - W) / 2;
+		int colW = W / 2 - 16;
+		known.clear();
+		learn.clear();
 		for (int i = 0; i < ClientState.skills.size(); i++) {
 			Skill s = Skill.byName(ClientState.skills.get(i));
 			if (s == null) continue;
 			final int index = i;
 			boolean active = i == ClientState.selectedSkill;
-			KonoButton b = new KonoButton(x0 + 10 + (i % 2) * 86, y + (i / 2) * 21, 84, 20, Text.literal((active ? "▶ " : "") + s.title + " (" + s.mana + ")"), btn -> {
+			KonoButton b = new KonoButton(x0 + 10, 0, colW, ROW - 2, Text.literal((active ? "▶ " : "") + s.title + " · " + s.mana), btn -> {
 					ClientNet.selectSkill(index, true);
 					ClientState.selectedSkill = index;
 					refresh();
 				}, KonoButton.Style.PAPER)
 				.tip(Text.literal(s.title + " (клик — сделать активным)\n" + s.description + "\nМана: " + s.mana + ", перезарядка: " + (s.cooldown / 20) + " с"));
+			known.add(b);
 			addDrawableChild(b);
 		}
-		// Learnable skills
 		for (int i = 0; i < ClientState.learnable.size(); i++) {
 			Skill s = Skill.byName(ClientState.learnable.get(i));
 			if (s == null) continue;
 			int cost = ClientState.learnCost.get(i);
-			KonoButton b = new KonoButton(x0 + W / 2 + 8, y0 + 118 + i * 21, W / 2 - 18, 20, Text.literal(s.title + " — " + cost + " ОН"),
+			KonoButton b = new KonoButton(x0 + W / 2 + 6, 0, colW, ROW - 2, Text.literal(s.title + " — " + cost + " ОН"),
 				btn -> ClientNet.learnSkill(s.name()), KonoButton.Style.PAPER)
 				.tip(Text.literal(s.description + "\nСтоимость: " + cost + " очк. навыков"));
 			b.active = ClientState.skillPoints >= cost;
+			learn.add(b);
 			addDrawableChild(b);
 		}
-		addDrawableChild(new KonoButton(x0 + W - 72, y0 + H - 28, 60, 20, Text.literal("Закрыть"), btn -> close(), KonoButton.Style.PAPER));
+		int y0 = (height - H) / 2;
+		addDrawableChild(new KonoButton(x0 + W - 72, y0 + H - 26, 60, 20, Text.literal("Закрыть"), btn -> close(), KonoButton.Style.PAPER));
+		layoutLists();
+	}
+
+	/** Places the visible slice of both lists and hides the rest. */
+	private void layoutLists() {
+		int top = (height - H) / 2 + LIST_TOP, rows = visibleRows();
+		knownScroll = Math.max(0, Math.min(knownScroll, known.size() - rows));
+		learnScroll = Math.max(0, Math.min(learnScroll, learn.size() - rows));
+		for (int i = 0; i < known.size(); i++) {
+			int r = i - knownScroll;
+			known.get(i).visible = r >= 0 && r < rows;
+			known.get(i).setY(top + r * ROW);
+		}
+		for (int i = 0; i < learn.size(); i++) {
+			int r = i - learnScroll;
+			learn.get(i).visible = r >= 0 && r < rows;
+			learn.get(i).setY(top + r * ROW);
+		}
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+		int step = amount > 0 ? -1 : 1;
+		if (mouseX < width / 2.0) knownScroll += step;
+		else learnScroll += step;
+		layoutLists();
+		return true;
+	}
+
+	private void scrollHint(DrawContext ctx, int x, int w, int scroll, int size) {
+		int rows = visibleRows();
+		if (size <= rows) return;
+		int y = listBottom() + 1;
+		String t = (scroll > 0 ? "▲ " : "") + (scroll + 1) + "–" + Math.min(size, scroll + rows) + " из " + size + (scroll + rows < size ? " ▼" : "");
+		ctx.drawText(textRenderer, Text.literal(t), x, y, 0xFF7A5A3A, false);
 	}
 
 	@Override
 	public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
 		renderBackground(ctx);
 		int x0 = (width - W) / 2, y0 = (height - H) / 2;
+		layoutLists();
 		// card body
 		KonoUi.panel(ctx, KonoUi.PANEL_PAPER, x0, y0, W, H);
 		ctx.fill(x0 + 5, y0 + 5, x0 + W - 5, y0 + 24, 0xFF7A4A22);
@@ -94,6 +149,8 @@ public class CardScreen extends Screen {
 		if (ClientState.skills.isEmpty()) {
 			ctx.drawText(textRenderer, Text.literal("Пока ни одного навыка."), x0 + 12, y0 + 122, 0xFF7A6A5A, false);
 		}
+		scrollHint(ctx, x0 + 12, W / 2, knownScroll, known.size());
+		scrollHint(ctx, x0 + W / 2 + 8, W / 2, learnScroll, learn.size());
 		if (ClientState.learnable.isEmpty()) {
 			ctx.drawText(textRenderer, Text.literal("Знакомьтесь с людьми,"), x0 + W / 2 + 10, y0 + 122, 0xFF7A6A5A, false);
 			ctx.drawText(textRenderer, Text.literal("чтобы учиться новому."), x0 + W / 2 + 10, y0 + 133, 0xFF7A6A5A, false);

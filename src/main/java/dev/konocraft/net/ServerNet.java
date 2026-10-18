@@ -93,10 +93,10 @@ public final class ServerNet {
 		// Skills that can be learned right now (unlocked by story flags)
 		StoryState state = StoryState.get(player.getServer());
 		int count = 0;
-		for (Skill s : Skill.values()) if (Skills.unlocked(state, d, s)) count++;
+		for (Skill s : Skill.values()) if (Skills.unlocked(player, state, d, s)) count++;
 		buf.writeVarInt(count);
 		for (Skill s : Skill.values()) {
-			if (Skills.unlocked(state, d, s)) {
+			if (Skills.unlocked(player, state, d, s)) {
 				buf.writeString(s.name());
 				buf.writeVarInt(d.playerClass.costOf(s));
 			}
@@ -127,6 +127,27 @@ public final class ServerNet {
 		buf.writeVarInt(duration);
 		buf.writeFloat(strength);
 		ServerPlayNetworking.send(player, Packets.FX, buf);
+	}
+
+	public static void sendFxAt(ServerPlayerEntity player, int kind, net.minecraft.util.math.Vec3d pos, int duration, float scale) {
+		PacketByteBuf buf = PacketByteBufs.create();
+		buf.writeVarInt(kind);
+		buf.writeDouble(pos.x);
+		buf.writeDouble(pos.y);
+		buf.writeDouble(pos.z);
+		buf.writeVarInt(duration);
+		buf.writeFloat(scale);
+		ServerPlayNetworking.send(player, Packets.FX_AT, buf);
+	}
+
+	public static void sendTitle(ServerPlayerEntity player, net.minecraft.text.Text title, net.minecraft.text.Text subtitle, int fadeIn, int stay, int fadeOut) {
+		PacketByteBuf buf = PacketByteBufs.create();
+		buf.writeText(title);
+		buf.writeText(subtitle == null ? net.minecraft.text.Text.empty() : subtitle);
+		buf.writeVarInt(fadeIn);
+		buf.writeVarInt(stay);
+		buf.writeVarInt(fadeOut);
+		ServerPlayNetworking.send(player, Packets.TITLE, buf);
 	}
 
 	public static void sendMusic(ServerPlayerEntity player, String music) {

@@ -11,9 +11,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.Monster;
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -35,9 +32,8 @@ public final class Cutscenes {
 	public static void alarm(MinecraftServer server, String text) {
 		for (ServerPlayerEntity p : server.getPlayerManager().getPlayerList()) {
 			p.getServerWorld().playSound(null, p.getX(), p.getY(), p.getZ(), ModSounds.ALARM, SoundCategory.MASTER, 1.5f, 1f);
-			p.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 60, 20));
-			p.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(text).formatted(Formatting.YELLOW)));
-			p.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("ЭКСТРЕННЫЙ КВЕСТ!").formatted(Formatting.RED, Formatting.BOLD)));
+			dev.konocraft.net.ServerNet.sendTitle(p, Text.literal("ЭКСТРЕННЫЙ КВЕСТ!").formatted(Formatting.RED, Formatting.BOLD),
+				Text.literal(text).formatted(Formatting.YELLOW), 10, 60, 20);
 			p.sendMessage(Text.literal("[Объявление гильдии] " + text).formatted(Formatting.RED), false);
 		}
 	}

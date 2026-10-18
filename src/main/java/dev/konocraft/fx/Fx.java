@@ -26,6 +26,9 @@ public final class Fx {
 	public static final DustParticleEffect PURPLE = new DustParticleEffect(new Vector3f(0.65f, 0.3f, 1f), 1.6f);
 	public static final DustParticleEffect WHITE = new DustParticleEffect(new Vector3f(1f, 1f, 1f), 1.2f);
 
+	/** Players this far away still see the explosion effects. */
+	private static final double FX_RANGE = 256;
+
 	private Fx() {
 	}
 
@@ -57,30 +60,16 @@ public final class Fx {
 		}
 	}
 
+	/** Megumin-grade explosion. The fireball, shock waves and mushroom cloud are drawn by the clients (ExplosionFx). */
 	public static void explosion(ServerWorld w, Vec3d pos, float scale) {
-		double r = 6 * scale;
-		w.spawnParticles(ParticleTypes.EXPLOSION_EMITTER, pos.x, pos.y + 1, pos.z, (int) (6 * scale), r * 0.4, r * 0.3, r * 0.4, 0);
-		w.spawnParticles(ParticleTypes.FLAME, pos.x, pos.y + 2, pos.z, (int) (400 * scale), r * 0.5, r * 0.5, r * 0.5, 0.35);
-		w.spawnParticles(ParticleTypes.LAVA, pos.x, pos.y + 1, pos.z, (int) (80 * scale), r * 0.4, 1, r * 0.4, 0);
-		w.spawnParticles(ParticleTypes.LARGE_SMOKE, pos.x, pos.y + 4, pos.z, (int) (200 * scale), r * 0.6, r * 0.7, r * 0.6, 0.08);
-		w.spawnParticles(CRIMSON, pos.x, pos.y + 3, pos.z, (int) (300 * scale), r * 0.6, r * 0.8, r * 0.6, 0);
-		// rising column of fire
-		for (int i = 0; i < 24; i++) {
-			w.spawnParticles(ParticleTypes.FLAME, pos.x, pos.y + i, pos.z, 12, 0.8 + i * 0.05, 0.3, 0.8 + i * 0.05, 0.02);
+		for (ServerPlayerEntity p : w.getPlayers()) {
+			if (p.squaredDistanceTo(pos) < FX_RANGE * FX_RANGE) ServerNet.sendFxAt(p, Packets.FX_AT_BLAST, pos, 0, scale);
 		}
-		// shock ring on the ground
-		for (int k = 0; k < 64; k++) {
-			double a = k * Math.PI * 2 / 64;
-			w.spawnParticles(ParticleTypes.CLOUD, pos.x + Math.cos(a) * r, pos.y + 0.3, pos.z + Math.sin(a) * r, 1, 0, 0, 0, 0.25);
-		}
-		w.spawnParticles(new BlockStateParticleEffect(ParticleTypes.BLOCK, Blocks.DIRT.getDefaultState()), pos.x, pos.y + 1, pos.z, 150, r * 0.4, 1, r * 0.4, 0.4);
 		w.playSound(null, pos.x, pos.y, pos.z, ModSounds.EXPLOSION_BIG, SoundCategory.MASTER, 6f, 1f);
 		w.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.MASTER, 6f, 0.5f);
 		w.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.MASTER, 4f, 0.6f);
 		flashAll(w, pos, 14);
-		shakeAll(w, pos, 40, 1.4f * scale);
-		Scheduler.after(10, () -> w.spawnParticles(ParticleTypes.LARGE_SMOKE, pos.x, pos.y + 8, pos.z, 150, r * 0.5, 3, r * 0.5, 0.05));
-		Scheduler.after(25, () -> w.spawnParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, pos.x, pos.y + 2, pos.z, 60, r * 0.4, 1, r * 0.4, 0.04));
+		shakeAll(w, pos, 50, 1.6f * scale);
 	}
 
 	public static void smallExplosion(ServerWorld w, Vec3d pos) {
@@ -89,31 +78,11 @@ public final class Fx {
 		w.playSound(null, pos.x, pos.y, pos.z, SoundEvents.ENTITY_GENERIC_EXPLODE, SoundCategory.MASTER, 1.5f, 1.2f);
 	}
 
-	/** Expanding red magic circle drawn over several ticks. */
+	/** Megumin's magic circle gathering power for {@code ticks}; drawn by the clients (ExplosionFx). */
 	public static void magicCircle(ServerWorld w, Vec3d pos, double radius, int ticks, ParticleEffect color) {
 		w.playSound(null, pos.x, pos.y, pos.z, ModSounds.CHANT, SoundCategory.MASTER, 2f, 1f);
-		for (int t = 0; t < ticks; t += 4) {
-			final int tt = t;
-			Scheduler.after(t + 1, () -> {
-				double r = radius * Math.min(1, (tt + 8) / 30.0);
-				double rot = tt * 0.05;
-				for (int k = 0; k < 48; k++) {
-					double a = k * Math.PI * 2 / 48 + rot;
-					w.spawnParticles(color, pos.x + Math.cos(a) * r, pos.y + 0.2, pos.z + Math.sin(a) * r, 1, 0, 0, 0, 0);
-					w.spawnParticles(color, pos.x + Math.cos(a) * r * 0.6, pos.y + 0.2, pos.z + Math.sin(a) * r * 0.6, 1, 0, 0, 0, 0);
-				}
-				// star inside the circle
-				for (int k = 0; k < 5; k++) {
-					double a1 = k * Math.PI * 2 / 5 + rot, a2 = (k + 2) * Math.PI * 2 / 5 + rot;
-					for (int s = 0; s <= 8; s++) {
-						double f = s / 8.0;
-						double x = Math.cos(a1) * r * (1 - f) + Math.cos(a2) * r * f;
-						double z = Math.sin(a1) * r * (1 - f) + Math.sin(a2) * r * f;
-						w.spawnParticles(color, pos.x + x, pos.y + 0.25, pos.z + z, 1, 0, 0, 0, 0);
-					}
-				}
-				w.spawnParticles(ParticleTypes.ENCHANT, pos.x, pos.y + 1.5, pos.z, 30, r * 0.5, 0.5, r * 0.5, 0.5);
-			});
+		for (ServerPlayerEntity p : w.getPlayers()) {
+			if (p.squaredDistanceTo(pos) < FX_RANGE * FX_RANGE) ServerNet.sendFxAt(p, Packets.FX_AT_CHARGE, pos, ticks, (float) radius);
 		}
 	}
 

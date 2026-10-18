@@ -114,6 +114,28 @@ public final class ClientNet {
 				}
 			});
 		});
+		ClientPlayNetworking.registerGlobalReceiver(Packets.TITLE, (client, handler, buf, sender) -> {
+			Text title = buf.readText(), subtitle = buf.readText();
+			int in = buf.readVarInt(), stay = buf.readVarInt(), out = buf.readVarInt();
+			client.execute(() -> {
+				ClientState.title = title;
+				ClientState.subtitle = subtitle;
+				ClientState.titleFadeIn = in;
+				ClientState.titleStay = stay;
+				ClientState.titleFadeOut = out;
+				ClientState.titleTicks = in + stay + out;
+			});
+		});
+		ClientPlayNetworking.registerGlobalReceiver(Packets.FX_AT, (client, handler, buf, sender) -> {
+			int kind = buf.readVarInt();
+			net.minecraft.util.math.Vec3d pos = new net.minecraft.util.math.Vec3d(buf.readDouble(), buf.readDouble(), buf.readDouble());
+			int duration = buf.readVarInt();
+			float scale = buf.readFloat();
+			client.execute(() -> {
+				if (kind == Packets.FX_AT_CHARGE) dev.konocraft.client.fx.ExplosionFx.charge(pos, duration, scale);
+				else if (kind == Packets.FX_AT_BLAST) dev.konocraft.client.fx.ExplosionFx.blast(pos, scale);
+			});
+		});
 		ClientPlayNetworking.registerGlobalReceiver(Packets.MUSIC, (client, handler, buf, sender) -> {
 			String music = buf.readString();
 			client.execute(() -> {

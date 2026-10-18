@@ -16,6 +16,7 @@ public class KonoCraftClient implements ClientModInitializer {
 		KonoRenderers.register();
 		KonoKeys.register();
 		ClientNet.init();
+		dev.konocraft.client.fx.ExplosionFx.init();
 		BlockRenderLayerMap.INSTANCE.putBlock(dev.konocraft.registry.ModBlocks.QUEST_BOARD, RenderLayer.getCutout());
 		HudRenderCallback.EVENT.register(KonoHud::render);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {

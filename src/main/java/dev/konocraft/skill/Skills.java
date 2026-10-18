@@ -27,8 +27,6 @@ import net.minecraft.entity.projectile.ProjectileUtil;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -65,10 +63,31 @@ public final class Skills {
 		return skill.unlockFlag == null || state.hasFlag(skill.unlockFlag);
 	}
 
+	/** Like {@link #unlocked(StoryState, PlayerData, Skill)}, but owning one of Megumin's staffs also opens Explosion. */
+	public static boolean unlocked(ServerPlayerEntity player, StoryState state, PlayerData d, Skill skill) {
+		if (unlocked(state, d, skill)) return true;
+		return skill == Skill.EXPLOSION && !d.skills.contains(skill) && hasExplosionStaff(player);
+	}
+
+	public static boolean isExplosionStaff(net.minecraft.item.ItemStack stack) {
+		return stack.isOf(dev.konocraft.registry.ModItems.MEGUMIN_STAFF) || stack.isOf(dev.konocraft.registry.ModItems.STAFF_REPLICA);
+	}
+
+	public static boolean hasExplosionStaff(ServerPlayerEntity player) {
+		var inv = player.getInventory();
+		for (int i = 0; i < inv.size(); i++) if (isExplosionStaff(inv.getStack(i))) return true;
+		return false;
+	}
+
+	/** Right click with Megumin's staff: Explosion, learned or not. */
+	public static void castWithStaff(ServerPlayerEntity player) {
+		cast(player, Skill.EXPLOSION, true);
+	}
+
 	public static void learn(ServerPlayerEntity player, Skill skill) {
 		StoryState state = StoryState.get(player.getServer());
 		PlayerData d = state.player(player.getUuid());
-		if (!unlocked(state, d, skill)) return;
+		if (!unlocked(player, state, d, skill)) return;
 		int cost = d.playerClass.costOf(skill);
 		if (d.skillPoints < cost) {
 			player.sendMessage(Text.literal("Не хватает очков навыков (нужно " + cost + ")").formatted(Formatting.RED), true);
@@ -110,8 +129,12 @@ public final class Skills {
 	}
 
 	public static void cast(ServerPlayerEntity player, Skill skill) {
+		cast(player, skill, false);
+	}
+
+	private static void cast(ServerPlayerEntity player, Skill skill, boolean viaStaff) {
 		PlayerData d = Progression.data(player);
-		if (!d.skills.contains(skill)) return;
+		if (!d.skills.contains(skill) && !viaStaff) return;
 		long now = player.getServerWorld().getTime();
 		EnumMap<Skill, Long> cds = cooldowns.computeIfAbsent(player.getUuid(), u -> new EnumMap<>(Skill.class));
 		Long ready = cds.get(skill);
@@ -119,13 +142,15 @@ public final class Skills {
 			player.sendMessage(Text.literal(skill.title + ": перезарядка " + ((ready - now) / 20 + 1) + " с").formatted(Formatting.GRAY), true);
 			return;
 		}
-		if (d.mana < skill.mana) {
-			player.sendMessage(Text.literal("Не хватает маны! (" + (int) d.mana + "/" + skill.mana + ")").formatted(Formatting.BLUE), true);
+		// Explosion burns all of your mana, so a full pool is enough even if it is smaller than the cost
+		int need = skill == Skill.EXPLOSION ? Math.min(skill.mana, d.maxMana()) : skill.mana;
+		if (d.mana < need) {
+			player.sendMessage(Text.literal("Не хватает маны! (" + (int) d.mana + "/" + need + ")").formatted(Formatting.BLUE), true);
 			return;
 		}
 		boolean ok = perform(player, skill, d);
 		if (!ok) return;
-		d.mana -= skill.mana;
+		d.mana = Math.max(0, d.mana - need);
 		cds.put(skill, now + skill.cooldown);
 		StoryState.get(player.getServer()).markDirty();
 		Progression.sync(player);
@@ -299,8 +324,7 @@ public final class Skills {
 		Fx.magicCircle(w, target, 6.5, 30, Fx.RED);
 		player.addStatusEffect(new StatusEffectInstance(StatusEffects.SLOWNESS, 35, 3, false, false, false));
 		Scheduler.after(30, () -> {
-			player.networkHandler.sendPacket(new TitleFadeS2CPacket(2, 20, 10));
-			player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("ВЗРЫВ!").formatted(Formatting.RED, Formatting.BOLD)));
+			dev.konocraft.net.ServerNet.sendTitle(player, Text.literal("ВЗРЫВ!").formatted(Formatting.RED, Formatting.BOLD), Text.empty(), 2, 20, 10);
 			Cutscenes.explosionDamage(w, target, 9, 90f, player);
 			Fx.explosion(w, target, 1.0f);
 			// The price of the strongest magic: you cannot move afterwards

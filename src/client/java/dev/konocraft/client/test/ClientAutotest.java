@@ -141,9 +141,10 @@ public final class ClientAutotest {
 		summon("destroyer_core", -4.5, ground(-4.5, dz - 18), dz - 18, 0);
 		shot("17_destroyer", tp(-30, ground(-30, dz - 48) + 8, dz - 48, -32, 4), LOAD);
 		// Explosion!
-		add(10, c -> command(c, tp(0.5, ground(0.5, 295) + 2, 295, 0, 8)));
+		add(10, c -> command(c, tp(0.5, ground(0.5, 295) + 2, 295, 0, -10)));
 		add(LOAD, c -> command(c, "konocraft fx magic_circle"));
-		add(50, c -> command(c, "konocraft fx explosion"));
+		add(45, c -> screenshot(c, "18_charge"));
+		add(5, c -> command(c, "konocraft fx explosion"));
 		add(8, c -> screenshot(c, "18_explosion"));
 		add(25, c -> screenshot(c, "19_explosion_after"));
 		// The new Axel: market, noble quarter, canal, park, bath, inn, streets and lanes, the map
@@ -190,6 +191,8 @@ public final class ClientAutotest {
 			dev.konocraft.world.structure.KeeleDungeon.KEELE_Z + 0.5, 90, 4), LOAD);
 		// UI
 		add(40, c -> {
+			// owning Megumin's staff makes Explosion learnable
+			command(c, "give @s konocraft:staff_replica");
 			command(c, "konocraft class adventurer");
 			command(c, "konocraft money 123456");
 			command(c, "konocraft stage 21");
@@ -200,6 +203,12 @@ public final class ClientAutotest {
 		add(10, c -> c.setScreen(null));
 		add(10, c -> command(c, "konocraft shop wiz"));
 		add(40, c -> screenshot(c, "22_shop"));
+		add(10, c -> {
+			c.setScreen(null);
+			command(c, "konocraft event graveyard");
+		});
+		add(25, c -> screenshot(c, "23_alarm"));
+		add(5, c -> command(c, "konocraft event stop"));
 		add(20, c -> {
 			KonoCraft.LOGGER.info("[AUTOTEST] client tour finished");
 			c.scheduleStop();

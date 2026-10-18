@@ -17,15 +17,13 @@ import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.s2c.play.SubtitleS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleFadeS2CPacket;
-import net.minecraft.network.packet.s2c.play.TitleS2CPacket;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -226,9 +224,8 @@ public final class Actions {
 			}
 			case "title" -> {
 				String[] parts = arg.split("\\|", 2);
-				player.networkHandler.sendPacket(new TitleFadeS2CPacket(10, 50, 20));
-				player.networkHandler.sendPacket(new SubtitleS2CPacket(Text.literal(parts.length > 1 ? format(player, parts[1]) : "")));
-				player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal(format(player, parts[0]))));
+				ServerNet.sendTitle(player, Text.literal(format(player, parts[0])).formatted(Formatting.RED, Formatting.BOLD),
+					Text.literal(parts.length > 1 ? format(player, parts[1]) : "").formatted(Formatting.YELLOW), 10, 50, 20);
 			}
 			case "msg" -> player.sendMessage(Text.literal(format(player, arg)), false);
 			case "fx" -> Fx.play(player, args[0], resolve(player, arg.contains(" ") ? arg.substring(arg.indexOf(' ') + 1) : "@player", session), session);

@@ -31,8 +31,8 @@ public final class ModItems {
 	public static final Item MANATITE_STAFF = register("manatite_staff", new KonoItems.Staff(KonoItems.Material.STAFF, 2, -2.6f, new Item.Settings().rarity(Rarity.RARE), 2.0f));
 	public static final Item CRUSADER_SWORD = register("crusader_sword", new SwordItem(KonoItems.Material.HOLY_STEEL, 5, -2.8f, new Item.Settings().rarity(Rarity.RARE)));
 	public static final Item GODDESS_SCEPTER = register("goddess_scepter", new KonoItems.Staff(KonoItems.Material.STAFF, 3, -2.4f, new Item.Settings().rarity(Rarity.RARE), 1.6f));
-	public static final Item MEGUMIN_STAFF = register("megumin_staff", new KonoItems.Staff(KonoItems.Material.STAFF, 2, -2.6f, new Item.Settings().rarity(Rarity.EPIC), 2.5f));
-	public static final Item STAFF_REPLICA = register("staff_replica", new KonoItems.Staff(KonoItems.Material.STAFF, 1, -2.6f, new Item.Settings().rarity(Rarity.UNCOMMON), 1.5f));
+	public static final Item MEGUMIN_STAFF = register("megumin_staff", new KonoItems.ExplosionStaff(KonoItems.Material.STAFF, 2, -2.6f, new Item.Settings().rarity(Rarity.EPIC), 2.5f));
+	public static final Item STAFF_REPLICA = register("staff_replica", new KonoItems.ExplosionStaff(KonoItems.Material.STAFF, 1, -2.6f, new Item.Settings().rarity(Rarity.UNCOMMON), 1.5f));
 
 	// Food
 	public static final Item TOAD_MEAT = register("toad_meat", new Item(new Item.Settings().food(new FoodComponent.Builder().hunger(3).saturationModifier(0.3f).meat().build())));

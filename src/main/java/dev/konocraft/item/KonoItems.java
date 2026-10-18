@@ -113,6 +113,25 @@ public final class KonoItems {
 		}
 	}
 
+	/** Megumin's staff and its replica: right click casts Explosion, even without the learned skill. */
+	public static class ExplosionStaff extends Staff {
+		public ExplosionStaff(ToolMaterial material, int damage, float speed, Settings settings, float manaBoost) {
+			super(material, damage, speed, settings, manaBoost);
+		}
+
+		@Override
+		public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+			if (!world.isClient && user instanceof ServerPlayerEntity sp) dev.konocraft.skill.Skills.castWithStaff(sp);
+			return TypedActionResult.success(user.getStackInHand(hand), world.isClient);
+		}
+
+		@Override
+		public void appendTooltip(ItemStack stack, World world, List<Text> tooltip, TooltipContext context) {
+			tooltip.add(Text.literal("ПКМ — Взрыв! (вся мана, перезарядка 60 с)").formatted(Formatting.RED, Formatting.BOLD));
+			super.appendTooltip(stack, world, tooltip, context);
+		}
+	}
+
 	public static class AdventurerCard extends Item {
 		public AdventurerCard(Settings settings) {
 			super(settings);
